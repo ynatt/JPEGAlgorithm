@@ -24,7 +24,7 @@ namespace JPEGAlgorithm {
                 }
             }
         }
-
+		
 		public static void Dequantize(double[,] matrix, double[,] qMatrix) {
 			var n = matrix.GetLength(0);
 			for (var i = 0; i < n; i++) {

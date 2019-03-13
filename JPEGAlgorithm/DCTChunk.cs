@@ -60,6 +60,7 @@ namespace JPEGAlgorithm {
 			MathUtils.RoundMatrix(cr);
 		}
 
+
 		public int[] getDCCoeffs() {
 			int[] coeffs = new int[6];
 			for (int i = 0; i < Chunk.BLOCKS_COUNT; i++) {

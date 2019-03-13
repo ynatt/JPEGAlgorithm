@@ -50,6 +50,7 @@ namespace JPEGAlgorithm {
             ImageUtils.Shift(Cr);
         }
 
+
 		public Chunk(DCTChunk dCTChunk) {
 			for (int i = 0; i < BLOCKS_COUNT; i++) {
 				y[i] = new ImageBlock(TransformsUtils.Reverse_DCT(dCTChunk.Y[i]));
@@ -69,23 +70,23 @@ namespace JPEGAlgorithm {
 
         public override string ToString() {
             StringBuilder sb = new StringBuilder();
-			for (var i = 0; i < BLOCK_SIZE; i++) {
-				for (var j = 0; j < BLOCK_SIZE; j++) {
-					for (var k = 0; k < BLOCKS_COUNT + 2; k++) {
-						if (k < 4) {
-							sb.Append(y[k].Data[i, j]).Append(" ");
-							continue;
-						}
-						if (k == 4) {
-							sb.Append(cb.Data[i, j]).Append(" ");
-						}
-						if (k == 5) {
-							sb.Append(cb.Data[i, j]).Append(" ");
-						}
-					}
-					sb.Append("    ");
-				}
-				sb.AppendLine();
+        	for (var i = 0; i < BLOCK_SIZE; i++) {
+          		for (var j = 0; j < BLOCK_SIZE; j++) {
+            		for (var k = 0; k < BLOCKS_COUNT + 2; k++) {
+              			if (k < 4) {
+                			sb.Append(y[k].Data[i, j]).Append(" ");
+                			continue;
+              			}
+              			if (k == 4) {
+                			sb.Append(cb.Data[i, j]).Append(" ");
+              			}
+              			if (k == 5) {
+                			sb.Append(cb.Data[i, j]).Append(" ");
+              			}
+            		}
+            	sb.Append("    ");
+          		}
+          	sb.AppendLine();
 			}
             return sb.ToString();
         }

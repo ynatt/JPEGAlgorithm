@@ -31,7 +31,7 @@ namespace JPEGAlgorithm {
             }
             return result;
         }
-
+		
 		public static int[,] Reverse_DCT(double[,] data) {
 			var n = data.GetLength(0);
 			var result = new int[n, n];

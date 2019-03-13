@@ -44,7 +44,7 @@ namespace JPEGAlgorithm {
 			}
 			tree = nodes.First();
 		}
-
+		
 		public void buildCodeTable() {//NEED TO FIX
 			if (codeTable == null) {
 				Node root = this.tree;
@@ -72,9 +72,6 @@ namespace JPEGAlgorithm {
 					code.Remove(code.Length - 1, 1);
 				}
 			}
-			/*if (node.parent != null && node.parent.right != null && node.parent.right == node) {
-				code.Remove(0, 1);
-			}*/
 		}
 	}
 }
