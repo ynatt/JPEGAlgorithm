@@ -26,6 +26,22 @@ namespace JPEGAlgorithm
             Pixels = pixels;
         }
 
+		public static RGBImage FromMatrix(RGBImage[,] matrix) {
+			var w = matrix.GetLength(0);
+			var h = matrix.GetLength(1);
+			var pixels = new RGBPixel[w * 16, h * 16];
+			for (int i = 0; i < w; i++) {
+				for (int j = 0; j < h; j++) {
+					for (int k = 0; k < 16; k++) {
+						for (int t = 0; t < 16; t++) {
+							pixels[i * 16 + k, j * 16 + t] = matrix[i, j].Pixels[k, t];
+						}
+					}
+				}
+			}
+			return new RGBImage(pixels);
+		}
+
         public int Width { get => width; set => width = value; }
         public int Height { get => height; set => height = value; }
         internal RGBPixel[,] Pixels { get => pixels; set => pixels = value; }
@@ -110,7 +126,25 @@ namespace JPEGAlgorithm
                             blue = pixel.b;
                             break;
                     }
-                    result.SetPixel(x, y, Color.FromArgb(red, green, blue));
+					if (red < 0 ) {
+						red = 0;
+					}
+					if (red > 255) {
+						red = 255;
+					}
+					if (green < 0) {
+						green = 0;
+					}
+					if (green > 255) {
+						green = 255;
+					}
+					if (blue < 0) {
+						blue = 0;
+					}
+					if (blue > 255) {
+						blue = 255;
+					}
+					result.SetPixel(x, y, Color.FromArgb(red, green, blue));
                 }
             }
             return result;
@@ -123,15 +157,15 @@ namespace JPEGAlgorithm
                     yCbCrPixels[i, j] = pixels[i, j].ToYCC();
                 }
             }
-            return new YCbCrImage(yCbCrPixels, width, height);
+            return new YCbCrImage(yCbCrPixels);
         }
 
-        public RGBImage[] ToBlockArray(int blockSize) {
+        public RGBImage[] ToBlockArray(int blockSize, out int widthBlocks, out int heightBlocks) {
             if (Height % blockSize != 0 && Width % blockSize != 0) {
                 throw new ArgumentException("Image don't fit to chunk with size = " + blockSize);
             }
-            var heightBlocks = Height / blockSize;
-            var widthBlocks = Width / blockSize;
+            heightBlocks = Height / blockSize;
+            widthBlocks = Width / blockSize;
             var res = new RGBImage[widthBlocks * heightBlocks];
             for (var j = 0; j < heightBlocks; j++) {
                 for (var i = 0; i < widthBlocks; i++) {

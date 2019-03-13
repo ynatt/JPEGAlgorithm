@@ -48,6 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Averager.cs" />
+    <Compile Include="BitStream.cs" />
     <Compile Include="Chunk.cs" />
     <Compile Include="DCTChunk.cs" />
     <Compile Include="HaffmanCompress.cs" />

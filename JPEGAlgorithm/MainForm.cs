@@ -20,7 +20,7 @@ namespace JPEGAlgorithm
         private void openPictureButton_Click(object sender, EventArgs e)
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "Image files (*.png)|*.png";
+            openFileDialog.Filter = "Image files (*.png)|*.png|(*.jpg)|*.jpg";
             if (openFileDialog.ShowDialog() == DialogResult.OK) {
                 sourceImageBox.Image = Image.FromFile(openFileDialog.FileName);
             }
@@ -123,33 +123,6 @@ namespace JPEGAlgorithm
             resultPictureBox.Image = image.ToImage();
         }
 
-        private void CompressButton_Click(object sender, EventArgs e) {
-            Averager averager = new Averager();
-            var dim = Int32.Parse(dimentionTextBox.Text);
-            var x = Int32.Parse(xTextBox.Text);
-            var y = Int32.Parse(yTextBox.Text);
-            YCbCrImage.Channel channel = (YCbCrImage.Channel)channelComboBox.SelectedValue;
-            YCbCrImage image = new YCbCrImage(sourceImageBox.Image).SubImage(dim, x, y);
-            ImageBlock block = image.GetImageBlock(channel);
-            Console.WriteLine(block);
-            ImageUtils.Shift(block);
-            Console.WriteLine();
-            Console.WriteLine(block);
-            if (doAverageChannel.Checked) {
-                block = averager.Average(block);
-            }
-            var dct = TransformsUtils.DCT(block);
-            MathUtils.RoundMatrix(dct);
-            Show("Спектр косинус преобразования", dct);
-            var q = Double.Parse(quantCoeff.Text);
-            var Q = MathUtils.BuildQuantizationMatrix(q, dim);
-            Show("Матрица квантования", Q);
-            MathUtils.Quantize(dct, Q);
-            Show("Спектр после квантования", dct);
-            MathUtils.RoundMatrix(dct);
-            Show("Спектр после округления", dct);
-        }
-
         private static void Show(String message, double[,] matrix) {
             StringBuilder sb = new StringBuilder();
             sb.Append(message).Append("\n");
@@ -166,22 +139,27 @@ namespace JPEGAlgorithm
 
         //private RGBImage[] blocks;
 
-        private void fitToBlockButton_Click(object sender, EventArgs e) {
+        private void CompressButton_Click(object sender, EventArgs e) {
             var sourceImage = sourceImageBox.Image;
+            var originalWidth = sourceImage.Width;
+            var originalHeight = sourceImage.Height;
             var quantCoeff = Double.Parse(this.quantCoeff.Text);
+            var dcqCoeff = Double.Parse(this.dcqCoeff.Text);
             var blockSize = Int32.Parse(dimentionTextBox.Text);
             var chunkSize = blockSize * 2;
             var fittedToChunksImage = ImageUtils.FitToBlockSize(new RGBImage(sourceImage), chunkSize);
-            var chunks = fittedToChunksImage.ToBlockArray(chunkSize);
-            var dcCoeffs = new List<int>();
+			var chunks = fittedToChunksImage.ToBlockArray(chunkSize, out int widthBlocks, out int heightBlocks);
+			var dcCoeffs = new List<int>();
             Chunk chunk;
             DCTChunk dCTChunk;
+			List<DCTChunk> dCTChunks = new List<DCTChunk>(chunks.Length);
+            var quantizeMatrix = MathUtils.BuildQuantizationMatrix(quantCoeff, dcqCoeff, 8); 
             for (int i = 0; i < chunks.Length; i++) {
                 chunk = new Chunk(chunks[i]);
 				dCTChunk = new DCTChunk(chunk);
-                dCTChunk.Quantize(quantCoeff);
+				dCTChunk.Quantize(quantCoeff, quantizeMatrix);
+				dCTChunks.Add(dCTChunk);
                 dcCoeffs.AddRange(dCTChunk.getDCCoeffs());
-				//Console.WriteLine(dCTChunk);
 			}
 			//Console.WriteLine(String.Join(", ", dcCoeffs.ToArray()));
 			var dcDiffs = MathUtils.MakeDiffOfDCCoeffs(dcCoeffs);
@@ -191,12 +169,25 @@ namespace JPEGAlgorithm
 			var tuples = barChart.Select(entry => new Tuple<int, int>(entry.Key, entry.Value));
 			var compressor = new HaffmanCompress(tuples);
 			compressor.buildTree();
-			NodeUtils.showAsTree(compressor.Tree);
 			compressor.buildCodeTable();
-			Console.WriteLine(string.Join(";", compressor.CodeTable.Select(x => x.Key + "=" + x.Value).ToArray()));
-			chart1.Series["DC Coeffs Diffs"].Points.DataBindXY(barChart.Keys, barChart.Values);
-            /*double[] array = {1, 2, 4, 7, 5, 3, 6, 8, 9};
-            int[,] data = {{ 1, 1, 2, 2, 3, 3, 4, 4 },
+			chart.Series["DCDiffsBitLength"].Points.DataBindXY(barChart.Keys, barChart.Values);
+			var listOfDecompressedImages = new List<YCbCrImage>();
+			for (int i = 0; i < dCTChunks.Count; i++) {
+				dCTChunks[i].Dequantize(quantCoeff, quantizeMatrix);
+				listOfDecompressedImages.Add(YCbCrImage.FromChunk(new Chunk(dCTChunks[i])));
+			}
+			var matrix = new YCbCrImage[widthBlocks, heightBlocks];
+			for (int i = 0; i < widthBlocks; i++) {
+				for (int j = 0; j < heightBlocks; j++) {
+					matrix[i, j] = listOfDecompressedImages[j * widthBlocks + i];
+				}
+			}
+			//Console.WriteLine(dCTChunks[0]);
+			var decompressedImage = YCbCrImage.FromMatrix(matrix).ToRGBImage(originalWidth, originalHeight);
+			resultPictureBox.Image = decompressedImage.ToImage();
+			Console.WriteLine("Done");
+			/*double[] array = {1, 2, 4, 7, 5, 3, 6, 8, 9};
+            int[,] data = {{ 1, 1, 2, 2, 3, 3, 4, 4 }
                             { 1, 2, 2, 2, 3, 3, 4, 4 },
                             { 5, 5, 6, 6, 7, 7, 8, 8 },
                             { 5, 5, 6, 6, 7, 7, 8, 8 },
@@ -208,16 +199,16 @@ namespace JPEGAlgorithm
                                           { new ImageBlock(data), new ImageBlock(data)} };
             Console.WriteLine(new Averager().Average(imageBlocks));
             */
-            /*Show("Ect", MatrixUtils<double>.ToMatrixByZigZag(array, 3));
+			/*Show("Ect", MatrixUtils<double>.ToMatrixByZigZag(array, 3));
             var arr = MatrixUtils<double>.ToArrayByZigZag(MatrixUtils<double>.ToMatrixByZigZag(array, 3));
             for (int i = 0; i < arr.Length; i++) {
                 Console.WriteLine(arr[i] + " ");
             }*/
-            //Timer timer = new Timer();
-            //timer.Interval = 1000;
-            //timer.Tick += new System.EventHandler(this.nextBlock);
-            //timer.Start();
-        }
+			//Timer timer = new Timer();
+			//timer.Interval = 1000;
+			//timer.Tick += new System.EventHandler(this.nextBlock);
+			//timer.Start();
+		}
 
 		private void button1_Click(object sender, EventArgs e) {
 			var array = new int[]{ 0, 1, 3, 7, 15, 31, 63, 127, 255, 511, 1023, 2047, -2047};
@@ -238,12 +229,17 @@ namespace JPEGAlgorithm
 			Console.WriteLine(string.Join(";", haffmanCompress.CodeTable.Select(x => x.Key + "=" + x.Value).ToArray()));*/
 		}
 
-		/*private void nextBlock(object sender, EventArgs e) {
+        private void chart_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        /*private void nextBlock(object sender, EventArgs e) {
             if (tick == blocks.Length) {
                 tick = 0;
             }
             resultPictureBox.Image = blocks[tick].ToImage();
             tick++;
         }*/
-	}
+    }
 }

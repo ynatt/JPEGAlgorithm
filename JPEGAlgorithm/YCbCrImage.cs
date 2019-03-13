@@ -30,23 +30,58 @@ namespace JPEGAlgorithm
             Pixels = ImageUtils.toYCCMatrix(ImageUtils.toRGBMatrix(image));
         }
 
-        public YCbCrImage(YCbCrPixel[,] pixels, int width, int height) {
-            Width = width;
-            Height = height;
+        public YCbCrImage(YCbCrPixel[,] pixels) {
+            Width = pixels.GetLength(0);
+            Height = pixels.GetLength(1);
             this.Pixels = pixels;
         }
 
-        public YCbCrImage SubImage(int dimension, int x, int y) {
+		public static YCbCrImage FromMatrix(YCbCrImage[,] matrix) {
+			var w = matrix.GetLength(0);
+			var h = matrix.GetLength(1);
+			var pixels = new YCbCrPixel[w * 16, h * 16];
+			for (int i = 0; i < w; i++) {
+				for (int j = 0; j < h; j++) {
+					for (int k = 0; k < 16; k++) {
+						for (int t = 0; t < 16; t++) {
+							pixels[i * 16 + k, j * 16 + t] = matrix[i, j].Pixels[k, t];
+						}
+					}
+				}
+			}
+			return new YCbCrImage(pixels);
+		}
+
+		public static YCbCrImage FromChunk(Chunk chunk) {
+			chunk.Unshift();
+			var imageBlockMatrix = MatrixUtils<ImageBlock>.ToMatrixByZigZag(chunk.Y, 2);
+			var yChunkImageBlock = new ImageBlock(imageBlockMatrix);
+			var cbChunkImageBlock = ImageBlock.FromAvaraged(chunk.Cb);
+			var crChunkImageBlock = ImageBlock.FromAvaraged(chunk.Cr);
+			return new YCbCrImage(ImageUtils.Merge(yChunkImageBlock, cbChunkImageBlock, crChunkImageBlock));
+		}
+
+		public YCbCrImage SubImage(int dimension, int x, int y) {
             var pixels = new YCbCrPixel[dimension, dimension];
             for (int i = 0; i < dimension; i++) {
                 for (int j = 0; j < dimension; j++) {
                     pixels[i, j] = this.Pixels[x + i, y + j];
                 }
             }
-            return new YCbCrImage(pixels, dimension, dimension);
+            return new YCbCrImage(pixels);
         }
 
-        public Image GetYChannel() {
+		public RGBImage ToRGBImage(int width, int height) {
+			var yCbCrPixels = new RGBPixel[width, height];
+			for (var i = 0; i < width; i++) {
+				for (var j = 0; j < height; j++) {
+					yCbCrPixels[i, j] = pixels[i, j].ToRGB();
+				}
+			}
+			return new RGBImage(yCbCrPixels);
+		}
+
+		public Image GetYChannel() {
             return ToImage(Channel.Y);
         }
 
@@ -88,7 +123,25 @@ namespace JPEGAlgorithm
                             cr = (int)Math.Round(pixel.cr);
                             break;
                     }
-                    result.SetPixel(i, j, Color.FromArgb(y, cb, cr));
+					if (y < 0) {
+						y = 0;
+					}
+					if (y > 255) {
+						y = 255;
+					}
+					if (cb < 0) {
+						cb = 0;
+					}
+					if (cb > 255) {
+						cb = 255;
+					}
+					if (cr < 0) {
+						cr = 0;
+					}
+					if (cr > 255) {
+						cr = 255;
+					}
+					result.SetPixel(i, j, Color.FromArgb(y, cb, cr));
                 }
             }
             return result;

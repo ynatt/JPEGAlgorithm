@@ -24,15 +24,33 @@ namespace JPEGAlgorithm {
                 }
             }
         }
+		
+		public static void Dequantize(double[,] matrix, double[,] qMatrix) {
+			var n = matrix.GetLength(0);
+			for (var i = 0; i < n; i++) {
+				for (var j = 0; j < n; j++) {
+					matrix[i, j] = matrix[i, j] * qMatrix[i, j];
+				}
+			}
+		}
 
-        public static double[,] BuildQuantizationMatrix(double q, int n) {
-            var matrix = new double[n, n];
+		private static double[,] matrixQ = new double[,] {  {160, 110, 110, 160, 140, 255, 255, 255},
+															{120, 120, 140, 190, 255, 255, 255, 255}, 
+															{140, 130, 160, 240, 255, 255, 255, 255},
+															{140, 170, 220, 255, 255, 255, 255, 255},
+															{180, 220, 255, 255, 255, 255, 255, 255},
+															{240, 255, 255, 255, 255, 255, 255, 255},
+															{255, 255, 255, 255, 255, 255, 255, 255},
+															{255, 255, 255, 255, 255, 255, 255, 255}};
+
+		public static double[,] BuildQuantizationMatrix(double acq, double dcq, int n) {
+			var matrix = new double[n, n];
             for (var i = 0; i < n; i++) {
                 for (var j = 0; j < n; j++) {
-                    matrix[i, j] = 3 + (i + j) * q;
+                    matrix[i, j] = 3 * dcq + (i + j) * acq;
                 }
             }
-            return matrix;
+			return matrix;
         }
 
         public static Dictionary<int, int> BuildBarChart(List<int> data) {

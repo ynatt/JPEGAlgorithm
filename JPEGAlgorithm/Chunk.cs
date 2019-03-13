@@ -50,13 +50,44 @@ namespace JPEGAlgorithm {
             ImageUtils.Shift(Cr);
         }
 
+
+		public Chunk(DCTChunk dCTChunk) {
+			for (int i = 0; i < BLOCKS_COUNT; i++) {
+				y[i] = new ImageBlock(TransformsUtils.Reverse_DCT(dCTChunk.Y[i]));
+			}
+			cb = new ImageBlock(TransformsUtils.Reverse_DCT(dCTChunk.Cb));
+			cr = new ImageBlock(TransformsUtils.Reverse_DCT(dCTChunk.Cr));
+		}
+
+		public void Unshift() {
+			ImageUtils.Unshift(y[0]);
+			ImageUtils.Unshift(y[1]);
+			ImageUtils.Unshift(y[2]);
+			ImageUtils.Unshift(y[3]);
+			ImageUtils.Unshift(cb);
+			ImageUtils.Unshift(cr);
+		}
+
         public override string ToString() {
             StringBuilder sb = new StringBuilder();
-            sb.Append("Y:");
-            for (var i = 0; i < BLOCKS_COUNT; i++) {
-                sb.Append("Y").Append(i).AppendLine().Append(y[i]);
-            }
-            sb.AppendLine().Append("Cb").AppendLine().Append(cb).AppendLine().Append("Cr").AppendLine().Append(cr);
+        	for (var i = 0; i < BLOCK_SIZE; i++) {
+          		for (var j = 0; j < BLOCK_SIZE; j++) {
+            		for (var k = 0; k < BLOCKS_COUNT + 2; k++) {
+              			if (k < 4) {
+                			sb.Append(y[k].Data[i, j]).Append(" ");
+                			continue;
+              			}
+              			if (k == 4) {
+                			sb.Append(cb.Data[i, j]).Append(" ");
+              			}
+              			if (k == 5) {
+                			sb.Append(cb.Data[i, j]).Append(" ");
+              			}
+            		}
+            	sb.Append("    ");
+          		}
+          	sb.AppendLine();
+			}
             return sb.ToString();
         }
     }

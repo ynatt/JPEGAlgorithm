@@ -31,6 +31,31 @@ namespace JPEGAlgorithm {
             }
             return result;
         }
+		
+		public static int[,] Reverse_DCT(double[,] data) {
+			var n = data.GetLength(0);
+			var result = new int[n, n];
+			var value = 0d;
+			var subValue = 0d;
+			var coeff = 0d;
+			var firstCos = 0d;
+			for (var u = 0; u < n; u++) {
+				for (var v = 0; v < n; v++) {
+					for (var i = 0; i < n; i++) {
+						firstCos = Cos(i, u, n);
+						for (var j = 0; j < n; j++) {
+							coeff = C(i, n) * C(j, n);
+							subValue += coeff * Cos(j, v, n) * data[i, j];
+						}
+						value += firstCos * subValue;
+						subValue = 0d;
+					}
+					result[u, v] =(int) Math.Round(value);
+					value = 0d;
+				}
+			}
+			return result;
+		}
 
         public static double Cos(int u, int k, int n) {
             return Math.Cos((u * Math.PI * (k + 0.5))/n);

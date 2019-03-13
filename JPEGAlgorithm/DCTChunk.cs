@@ -35,17 +35,31 @@ namespace JPEGAlgorithm {
 			return sb.ToString();
 		}
 
-		public void Quantize(double q) {
-			double[,] quantizeMatrix = MathUtils.BuildQuantizationMatrix(q, Chunk.BLOCK_SIZE);
+		public void Quantize(double q, double[,] quantizeMatrix) {
 			for (int i = 0; i < Chunk.BLOCKS_COUNT; i++) {
+				MathUtils.RoundMatrix(Y[i]);
 				MathUtils.Quantize(Y[i], quantizeMatrix);
 				MathUtils.RoundMatrix(Y[i]);
 			}
+			MathUtils.RoundMatrix(cb);
 			MathUtils.Quantize(cb, quantizeMatrix);
 			MathUtils.RoundMatrix(cb);
+			MathUtils.RoundMatrix(cr);
 			MathUtils.Quantize(cr, quantizeMatrix);
 			MathUtils.RoundMatrix(cr);
 		}
+
+		public void Dequantize(double q, double[,] quantizeMatrix) {
+			for (int i = 0; i < Chunk.BLOCKS_COUNT; i++) {
+				MathUtils.Dequantize(Y[i], quantizeMatrix);
+				MathUtils.RoundMatrix(Y[i]);
+			}
+			MathUtils.Dequantize(cb, quantizeMatrix);
+			MathUtils.RoundMatrix(cb);
+			MathUtils.Dequantize(cr, quantizeMatrix);
+			MathUtils.RoundMatrix(cr);
+		}
+
 
 		public int[] getDCCoeffs() {
 			int[] coeffs = new int[6];
@@ -59,19 +73,6 @@ namespace JPEGAlgorithm {
 
 		public int[] getACCoeffs() {
 			var coeffs = new int[6 * 63];
-			/*for (int i = 0; i < Chunk.BLOCKS_COUNT; i++) {
-				for (int k = 1; k < Chunk.BLOCK_SIZE; k++) {
-					for (int j = 1; j < Chunk.BLOCK_SIZE; j++) {
-						coeffs[i * 63 + k * Chunk.BLOCK_SIZE + j] = (int)y[i][k, j];
-					}
-				}
-				for (var k = 0; k < Chunk.BLOCK_SIZE - 1; k++) {
-					coeffs[i * 63 + k * Chunk.BLOCK_SIZE + 0] = (int)y[i][k + 1, 0];
-				}
-				for (var j = 0; j < Chunk.BLOCK_SIZE - 1; j++) {
-					coeffs[i * 63 + 0 * Chunk.BLOCK_SIZE + j] = (int)y[i][0, j + 1];
-				}
-			}*/
 			int t = 0;
 			for (int i = 0; i < Chunk.BLOCKS_COUNT; i++) {
 				for (int k = 0; k < Chunk.BLOCK_SIZE; k++) {
