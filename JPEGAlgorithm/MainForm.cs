@@ -135,11 +135,11 @@ namespace JPEGAlgorithm
             Console.WriteLine(sb.ToString());
         }
 
-        //private int tick = 0;
-
-        //private RGBImage[] blocks;
-
         private void CompressButton_Click(object sender, EventArgs e) {
+			Timer timer = Timer.GetInstance();
+			var MAIN_ID = "Main";
+			var FULL_COMPRESS = "Compress of image";
+			timer.Start(MAIN_ID, FULL_COMPRESS);
             var sourceImage = sourceImageBox.Image;
             var originalWidth = sourceImage.Width;
             var originalHeight = sourceImage.Height;
@@ -182,32 +182,10 @@ namespace JPEGAlgorithm
 					matrix[i, j] = listOfDecompressedImages[j * widthBlocks + i];
 				}
 			}
-			//Console.WriteLine(dCTChunks[0]);
 			var decompressedImage = YCbCrImage.FromMatrix(matrix).ToRGBImage(originalWidth, originalHeight);
 			resultPictureBox.Image = decompressedImage.ToImage();
-			Console.WriteLine("Done");
-			/*double[] array = {1, 2, 4, 7, 5, 3, 6, 8, 9};
-            int[,] data = {{ 1, 1, 2, 2, 3, 3, 4, 4 }
-                            { 1, 2, 2, 2, 3, 3, 4, 4 },
-                            { 5, 5, 6, 6, 7, 7, 8, 8 },
-                            { 5, 5, 6, 6, 7, 7, 8, 8 },
-                            { 9, 9, 10, 10, 11, 11, 12, 12 },
-                            { 9, 9, 10, 10, 11, 11, 12, 12 },
-                            { 13, 13, 14, 14, 15, 15, 20, 16 },
-                            { 13, 13, 14, 14, 15, 15, 16, 16 }};
-            ImageBlock[,] imageBlocks = { { new ImageBlock(data), new ImageBlock(data) },
-                                          { new ImageBlock(data), new ImageBlock(data)} };
-            Console.WriteLine(new Averager().Average(imageBlocks));
-            */
-			/*Show("Ect", MatrixUtils<double>.ToMatrixByZigZag(array, 3));
-            var arr = MatrixUtils<double>.ToArrayByZigZag(MatrixUtils<double>.ToMatrixByZigZag(array, 3));
-            for (int i = 0; i < arr.Length; i++) {
-                Console.WriteLine(arr[i] + " ");
-            }*/
-			//Timer timer = new Timer();
-			//timer.Interval = 1000;
-			//timer.Tick += new System.EventHandler(this.nextBlock);
-			//timer.Start();
+			timer.End(MAIN_ID, FULL_COMPRESS);
+			timer.DisplayIntervals();
 		}
 
 		private void button1_Click(object sender, EventArgs e) {
@@ -215,31 +193,11 @@ namespace JPEGAlgorithm
 			for (int i = 0; i < array.Length; i++) {
 				Console.WriteLine(array[i] + " " + NumberUtils.GetBitsLength(array[i]));
 			}
-			/*var tuples = new List<Tuple<int, int>>();
-			tuples.Add(new Tuple<int, int>(6, 200));
-			tuples.Add(new Tuple<int, int>(4, 184));
-			tuples.Add(new Tuple<int, int>(2, 90));
-			tuples.Add(new Tuple<int, int>(3, 45));
-			tuples.Add(new Tuple<int, int>(1, 14));
-			tuples.Add(new Tuple<int, int>(9, 7));
-			var haffmanCompress = new HaffmanCompress(tuples);
-			haffmanCompress.buildTree();
-			NodeUtils.showAsTree(haffmanCompress.Tree);
-			haffmanCompress.buildCodeTable();
-			Console.WriteLine(string.Join(";", haffmanCompress.CodeTable.Select(x => x.Key + "=" + x.Value).ToArray()));*/
 		}
 
         private void chart_Click(object sender, EventArgs e)
         {
 
         }
-
-        /*private void nextBlock(object sender, EventArgs e) {
-            if (tick == blocks.Length) {
-                tick = 0;
-            }
-            resultPictureBox.Image = blocks[tick].ToImage();
-            tick++;
-        }*/
     }
 }

@@ -61,6 +61,7 @@
     <Compile Include="NodeUtils.cs" />
     <Compile Include="NumberUtils.cs" />
     <Compile Include="RGBImage.cs" />
+    <Compile Include="Timer.cs" />
     <Compile Include="TransformsUtils.cs" />
     <Compile Include="YCbCrImage.cs" />
     <Compile Include="YCbCrPixel.cs" />
