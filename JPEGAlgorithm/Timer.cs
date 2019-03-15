@@ -36,7 +36,7 @@ namespace JPEGAlgorithm
 		}
 
 		public void Start(string id, string title) {
-			if (!intervals.ContainsKey(title)) {
+			if (!intervals.ContainsKey(id)) {
 				intervals.Add(id, new List<Interval> {new Interval(title, DateTime.Now)});
 			} else {
 				if (intervals[id].Exists(e => e.title.Equals(title))) {

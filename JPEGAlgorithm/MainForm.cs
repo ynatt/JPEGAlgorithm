@@ -139,6 +139,10 @@ namespace JPEGAlgorithm
 			Timer timer = Timer.GetInstance();
 			var MAIN_ID = "Main";
 			var FULL_COMPRESS = "Compress of image";
+			var SUB_ID = "Sub";
+			var DCT_OF_CHUNK = "Applying DCT to Chunk";
+			var REVERSE_DCT = "Reversing from DCT";
+			var HAFFMAN = "Haffman";
 			timer.Start(MAIN_ID, FULL_COMPRESS);
             var sourceImage = sourceImageBox.Image;
             var originalWidth = sourceImage.Width;
@@ -153,14 +157,17 @@ namespace JPEGAlgorithm
             Chunk chunk;
             DCTChunk dCTChunk;
 			List<DCTChunk> dCTChunks = new List<DCTChunk>(chunks.Length);
-            var quantizeMatrix = MathUtils.BuildQuantizationMatrix(quantCoeff, dcqCoeff, 8); 
-            for (int i = 0; i < chunks.Length; i++) {
+            var quantizeMatrix = MathUtils.BuildQuantizationMatrix(quantCoeff, dcqCoeff, 8);
+			timer.Start(SUB_ID, DCT_OF_CHUNK);
+			for (int i = 0; i < chunks.Length; i++) {
                 chunk = new Chunk(chunks[i]);
 				dCTChunk = new DCTChunk(chunk);
 				dCTChunk.Quantize(quantCoeff, quantizeMatrix);
 				dCTChunks.Add(dCTChunk);
                 dcCoeffs.AddRange(dCTChunk.getDCCoeffs());
 			}
+			timer.End(SUB_ID, DCT_OF_CHUNK);
+			timer.Start(SUB_ID, HAFFMAN);
 			//Console.WriteLine(String.Join(", ", dcCoeffs.ToArray()));
 			var dcDiffs = MathUtils.MakeDiffOfDCCoeffs(dcCoeffs);
 			var coeffsLengths = dcDiffs.ConvertAll(c => NumberUtils.GetBitsLength(c));
@@ -171,10 +178,17 @@ namespace JPEGAlgorithm
 			compressor.buildTree();
 			compressor.buildCodeTable();
 			chart.Series["DCDiffsBitLength"].Points.DataBindXY(barChart.Keys, barChart.Values);
+			timer.End(SUB_ID, HAFFMAN);
 			var listOfDecompressedImages = new List<YCbCrImage>();
+			var listOfDecompressedChunks = new List<Chunk>();
+			timer.Start(SUB_ID, REVERSE_DCT);
 			for (int i = 0; i < dCTChunks.Count; i++) {
 				dCTChunks[i].Dequantize(quantCoeff, quantizeMatrix);
-				listOfDecompressedImages.Add(YCbCrImage.FromChunk(new Chunk(dCTChunks[i])));
+				listOfDecompressedChunks.Add(new Chunk(dCTChunks[i]));
+			}
+			timer.End(SUB_ID, REVERSE_DCT);
+			for (int i = 0; i < dCTChunks.Count; i++) {
+				listOfDecompressedImages.Add(YCbCrImage.FromChunk(listOfDecompressedChunks[i]));
 			}
 			var matrix = new YCbCrImage[widthBlocks, heightBlocks];
 			for (int i = 0; i < widthBlocks; i++) {
