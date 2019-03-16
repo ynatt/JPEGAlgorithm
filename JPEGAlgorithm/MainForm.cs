@@ -20,7 +20,7 @@ namespace JPEGAlgorithm
         private void openPictureButton_Click(object sender, EventArgs e)
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "Image files (*.png)|*.png|(*.jpg)|*.jpg";
+            openFileDialog.Filter = "Image files (*.jpg)|*.jpg|Image files (*.png)|*.png";
             if (openFileDialog.ShowDialog() == DialogResult.OK) {
                 sourceImageBox.Image = Image.FromFile(openFileDialog.FileName);
             }

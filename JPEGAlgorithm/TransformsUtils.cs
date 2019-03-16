@@ -16,22 +16,18 @@ namespace JPEGAlgorithm {
 			var result = new double[n, n];
             var value = 0d;
             var subValue = 0d;
-            var coeff = 0d;
-            var firstCos = 0d;
 			var C_0 = 1 / Math.Sqrt(n);
 			var C_I = Math.Sqrt(2d / n);
 			for (var u = 0; u < n; u++) {
                 for (var v = 0; v < n; v++) {
-                    coeff = C(u, C_0, C_I) * C(v, C_0, C_I);
                     for (var i = 0; i < n; i++) {
-						firstCos = cosMatrix[u, i];
                         for (var j = 0; j < n; j++) {
                             subValue += cosMatrix[v, j] * block[i, j];
                         }
-                        value += firstCos * subValue;
+                        value += cosMatrix[u, i] * subValue;
                         subValue = 0d;
                     }
-                    result[u, v] = coeff * value;
+                    result[u, v] = (u == 0 ? C_0 : C_I) * (v == 0 ? C_0 : C_I) * value;
                     value = 0d;
                 }
             }
@@ -56,23 +52,22 @@ namespace JPEGAlgorithm {
 			var result = new int[n, n];
 			var cosMatrix = CountCosMatrixFor(n);
 			var value = 0d;
-			var subValue = 0d;
-			var coeff = 0d;
-			var firstCos = 0d;
+			var zeroSubValue = 0d;
+			var iSubValue = 0d;
 			var C_0 = 1 / Math.Sqrt(n);
 			var C_I = Math.Sqrt(2d / n);
 			for (var u = 0; u < n; u++) {
 				for (var v = 0; v < n; v++) {
 					for (var i = 0; i < n; i++) {
-						firstCos = cosMatrix[i, u];
-						for (var j = 0; j < n; j++) {
-							coeff = C(i, C_0, C_I) * C(j, C_0, C_I);
-							subValue += coeff * cosMatrix[j, v] * data[i, j];
+						zeroSubValue = C_0 * cosMatrix[0, v] * data[i, 0];
+						for (var j = 1; j < n; j++) {
+							iSubValue += C_I * cosMatrix[j, v] * data[i, j];
 						}
-						value += firstCos * subValue;
-						subValue = 0d;
+						value += (i == 0? C_0 : C_I) * cosMatrix[i, u] * (zeroSubValue + iSubValue);
+						zeroSubValue = 0d;
+						iSubValue = 0d;
 					}
-					result[u, v] =(int) value;
+					result[u, v] = (int) value;
 					value = 0d;
 				}
 			}
@@ -84,10 +79,6 @@ namespace JPEGAlgorithm {
 				return 1;
 			}
             return Math.Cos((u * Math.PI * (k + 0.5))/n);
-        }
-
-        private static double C(int i, double C_0, double C_I) {
-            return i != 0 ? C_I : C_0; 
         }
     }
 }
