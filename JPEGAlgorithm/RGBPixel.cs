@@ -18,9 +18,9 @@ namespace JPEGAlgorithm
         }
 
         public YCbCrPixel ToYCC() {
-            var y  = 0.299     * r + 0.587    * g + 0.114    * b;
-            var cb = -0.168736 * r - 0.331264 * g + 0.5      * b + 128;
-            var cr = 0.5       * r - 0.418688 * g - 0.081312 * b + 128;
+            var y  = 0.299f     * r + 0.587f    * g + 0.114f    * b;
+            var cb = -0.168736f * r - 0.331264f * g + 0.5f      * b + 128;
+            var cr = 0.5f       * r - 0.418688f * g - 0.081312f * b + 128;
             return new YCbCrPixel(y, cb, cr);
         }
 

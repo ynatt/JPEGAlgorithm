@@ -63,9 +63,19 @@ namespace JPEGAlgorithm.Properties {
         /// <summary>
         ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap TestPicture {
+        internal static System.Drawing.Bitmap Fallout_3_Test_Pattern_52_www_FullHDWpp_com_ {
             get {
-                object obj = ResourceManager.GetObject("TestPicture", resourceCulture);
+                object obj = ResourceManager.GetObject("Fallout-3-Test-Pattern-52_www.FullHDWpp.com_", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap plyazh_tropiki_more_pesok_leto_84726_1920x1080 {
+            get {
+                object obj = ResourceManager.GetObject("plyazh_tropiki_more_pesok_leto_84726_1920x1080", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

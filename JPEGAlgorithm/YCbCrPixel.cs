@@ -8,9 +8,9 @@ namespace JPEGAlgorithm
 {
     struct YCbCrPixel
     {
-        public double y, cb, cr;
+        public float y, cb, cr;
 
-        public YCbCrPixel(double y, double cb, double cr)
+        public YCbCrPixel(float y, float cb, float cr)
         {
             this.y = y;
             this.cb = cb;

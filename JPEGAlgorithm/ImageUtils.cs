@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -13,11 +15,17 @@ namespace JPEGAlgorithm
             int height = image.Height;
             int width = image.Width;
             RGBPixel[,] result = new RGBPixel[width, height];
-            Color color;
+			Rectangle rect = new Rectangle(0, 0, width, height);
+			BitmapData bitmapData = ((Bitmap)image).LockBits(rect, ImageLockMode.ReadOnly, image.PixelFormat);
+			IntPtr ptr = bitmapData.Scan0;
+			byte[] bytes = new byte[Math.Abs(bitmapData.Stride) * height];
+			Marshal.Copy(ptr, bytes, 0, bytes.Length);
+			((Bitmap)image).UnlockBits(bitmapData);
+			var pointer = 0;
             for (int i = 0; i < width; i++) {
                 for (int j = 0; j < height; j++) {
-                    color = ((Bitmap)image).GetPixel(i, j);
-                    result[i, j] = new RGBPixel(color.R, color.G, color.B);
+					pointer = (j * width + i) * 3;
+                    result[i, j] = new RGBPixel(bytes[pointer + 2], bytes[pointer + 1], bytes[pointer]);
                 }
             }
             return result;
@@ -38,10 +46,13 @@ namespace JPEGAlgorithm
         public static RGBImage FitToBlockSize(RGBImage image, int blockSize) {
             int oldHeight = image.Height;
             int oldWidth = image.Width;
-            int newHeight =(int) Math.Ceiling((double)image.Height / blockSize);
+            int newHeight =(int) Math.Ceiling((float)image.Height / blockSize);
             newHeight *= blockSize;
-            int newWidth =(int) Math.Ceiling((double)image.Width / blockSize);
+            int newWidth =(int) Math.Ceiling((float)image.Width / blockSize);
             newWidth *= blockSize;
+			if (oldHeight == newHeight && oldWidth == newWidth) {
+				return image;
+			}
             var oldPixels = image.Pixels;
             var newPixels = new RGBPixel[newWidth, newHeight];
             var stubPixel = new RGBPixel(0, 0, 0);

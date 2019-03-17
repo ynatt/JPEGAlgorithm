@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -101,15 +103,20 @@ namespace JPEGAlgorithm
         }
 
         public Image ToImage(Channel channel) {
-            Bitmap result = new Bitmap(width, height,
-                System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-            RGBPixel pixel;
+            Bitmap result = new Bitmap(width, height, PixelFormat.Format24bppRgb);
+			Rectangle rect = new Rectangle(0, 0, width, height);
+			BitmapData bitmapData = result.LockBits(rect, ImageLockMode.WriteOnly, result.PixelFormat);
+			IntPtr ptr = bitmapData.Scan0;
+			byte[] bytes = new byte[Math.Abs(bitmapData.Stride) * height];
+			RGBPixel pixel;
+			var pixels = this.pixels;
             int red;
             int green;
             int blue;
+			int pointer = 0;
             for (var x = 0; x < width; x++) {
                 for (var y = 0; y < height; y++) {
-                    pixel = Pixels[x, y];
+                    pixel = pixels[x, y];
                     switch (channel) {
                         case Channel.RED:
                             red = green = blue = pixel.r;
@@ -126,7 +133,7 @@ namespace JPEGAlgorithm
                             blue = pixel.b;
                             break;
                     }
-					if (red < 0 ) {
+					if (red < 0) {
 						red = 0;
 					}
 					if (red > 255) {
@@ -144,9 +151,14 @@ namespace JPEGAlgorithm
 					if (blue > 255) {
 						blue = 255;
 					}
-					result.SetPixel(x, y, Color.FromArgb(red, green, blue));
+					pointer = (y * width + x) * 3;
+					bytes[pointer++] = (byte) blue;
+					bytes[pointer++] = (byte) green;
+					bytes[pointer] = (byte) red;
                 }
             }
+			Marshal.Copy(bytes, 0 , ptr, bytes.Length);
+			result.UnlockBits(bitmapData);
             return result;
         }
 

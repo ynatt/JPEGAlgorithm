@@ -7,17 +7,17 @@ using System.Threading.Tasks;
 namespace JPEGAlgorithm {
     class TransformsUtils {
 
-		public static Dictionary<int, double[,]> cosMatrixes = new Dictionary<int, double[,]>();
+		public static Dictionary<int, float[,]> cosMatrixes = new Dictionary<int, float[,]>();
 
-        public static double[,] DCT(ImageBlock imageBlock) {
+        public static float[,] DCT(ImageBlock imageBlock) {
             var block = imageBlock.Data;
             var n = imageBlock.Width;
 			var cosMatrix = CountCosMatrixFor(n);
-			var result = new double[n, n];
-            var value = 0d;
-            var subValue = 0d;
-			var C_0 = 1 / Math.Sqrt(n);
-			var C_I = Math.Sqrt(2d / n);
+			var result = new float[n, n];
+            var value = 0f;
+            var subValue = 0f;
+			var C_0 = (float) (1 / Math.Sqrt(n));
+			var C_I = (float) Math.Sqrt(2f / n);
 			for (var u = 0; u < n; u++) {
                 for (var v = 0; v < n; v++) {
                     for (var i = 0; i < n; i++) {
@@ -25,18 +25,18 @@ namespace JPEGAlgorithm {
                             subValue += cosMatrix[v, j] * block[i, j];
                         }
                         value += cosMatrix[u, i] * subValue;
-                        subValue = 0d;
+                        subValue = 0f;
                     }
                     result[u, v] = (u == 0 ? C_0 : C_I) * (v == 0 ? C_0 : C_I) * value;
-                    value = 0d;
+                    value = 0f;
                 }
             }
             return result;
         }
 
-		private static double[,] CountCosMatrixFor(int n) {
+		private static float[,] CountCosMatrixFor(int n) {
 			if (!cosMatrixes.ContainsKey(n)) {
-				var res = new double[n, n];
+				var res = new float[n, n];
 				for (int i = 0; i < n; i++) {
 					for (int j = 0; j < n; j++) {
 						res[i, j] = Cos(i, j, n);
@@ -47,15 +47,15 @@ namespace JPEGAlgorithm {
 			return cosMatrixes[n];
 		}
 		
-		public static int[,] Reverse_DCT(double[,] data) {
+		public static int[,] Reverse_DCT(float[,] data) {
 			var n = data.GetLength(0);
 			var result = new int[n, n];
 			var cosMatrix = CountCosMatrixFor(n);
-			var value = 0d;
-			var zeroSubValue = 0d;
-			var iSubValue = 0d;
-			var C_0 = 1 / Math.Sqrt(n);
-			var C_I = Math.Sqrt(2d / n);
+			var value = 0f;
+			var zeroSubValue = 0f;
+			var iSubValue = 0f;
+			var C_0 = (float) (1 / Math.Sqrt(n));
+			var C_I = (float) Math.Sqrt(2f / n);
 			for (var u = 0; u < n; u++) {
 				for (var v = 0; v < n; v++) {
 					for (var i = 0; i < n; i++) {
@@ -64,21 +64,21 @@ namespace JPEGAlgorithm {
 							iSubValue += C_I * cosMatrix[j, v] * data[i, j];
 						}
 						value += (i == 0? C_0 : C_I) * cosMatrix[i, u] * (zeroSubValue + iSubValue);
-						zeroSubValue = 0d;
-						iSubValue = 0d;
+						zeroSubValue = 0f;
+						iSubValue = 0f;
 					}
-					result[u, v] = (int) value;
-					value = 0d;
+					result[u, v] = (int) Math.Round(value);
+					value = 0f;
 				}
 			}
 			return result;
 		}
 
-        public static double Cos(int u, int k, int n) {
+        public static float Cos(int u, int k, int n) {
 			if (u == 0) {
 				return 1;
 			}
-            return Math.Cos((u * Math.PI * (k + 0.5))/n);
+            return (float) Math.Cos((u * Math.PI * (k + 0.5))/n);
         }
     }
 }

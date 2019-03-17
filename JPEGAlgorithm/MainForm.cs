@@ -143,21 +143,32 @@ namespace JPEGAlgorithm
 			var DCT_OF_CHUNK = "Applying DCT to Chunk";
 			var REVERSE_DCT = "Reversing from DCT";
 			var HAFFMAN = "Haffman";
+			var PREP = "Prepatation";
+			var TO_RGB_IMAGE = "Transforming to RGBImage";
+			var FITTING = "Fitting to Chunk size";
+			var FROM_RGBIMAGE_TO_IMAGE = "Building an image from RGBImage";
 			timer.Start(MAIN_ID, FULL_COMPRESS);
+			timer.Start(SUB_ID, PREP);
             var sourceImage = sourceImageBox.Image;
             var originalWidth = sourceImage.Width;
             var originalHeight = sourceImage.Height;
-            var quantCoeff = Double.Parse(this.quantCoeff.Text);
-            var dcqCoeff = Double.Parse(this.dcqCoeff.Text);
+            var quantCoeff = float.Parse(this.quantCoeff.Text);
+            var dcqCoeff = float.Parse(this.dcqCoeff.Text);
             var blockSize = Int32.Parse(dimentionTextBox.Text);
             var chunkSize = blockSize * 2;
-            var fittedToChunksImage = ImageUtils.FitToBlockSize(new RGBImage(sourceImage), chunkSize);
+			timer.Start(SUB_ID, TO_RGB_IMAGE);
+			var rgbImage = new RGBImage(sourceImage);
+			timer.End(SUB_ID, TO_RGB_IMAGE);
+			timer.Start(SUB_ID, FITTING);
+			var fittedToChunksImage = ImageUtils.FitToBlockSize(rgbImage, chunkSize);
+			timer.End(SUB_ID, FITTING);
 			var chunks = fittedToChunksImage.ToBlockArray(chunkSize, out int widthBlocks, out int heightBlocks);
 			var dcCoeffs = new List<int>();
             Chunk chunk;
             DCTChunk dCTChunk;
 			List<DCTChunk> dCTChunks = new List<DCTChunk>(chunks.Length);
             var quantizeMatrix = MathUtils.BuildQuantizationMatrix(quantCoeff, dcqCoeff, 8);
+			timer.End(SUB_ID, PREP);
 			timer.Start(SUB_ID, DCT_OF_CHUNK);
 			for (int i = 0; i < chunks.Length; i++) {
                 chunk = new Chunk(chunks[i]);
@@ -197,7 +208,9 @@ namespace JPEGAlgorithm
 				}
 			}
 			var decompressedImage = YCbCrImage.FromMatrix(matrix).ToRGBImage(originalWidth, originalHeight);
+			timer.Start(SUB_ID, FROM_RGBIMAGE_TO_IMAGE);
 			resultPictureBox.Image = decompressedImage.ToImage();
+			timer.End(SUB_ID, FROM_RGBIMAGE_TO_IMAGE);
 			timer.End(MAIN_ID, FULL_COMPRESS);
 			timer.DisplayIntervals();
 		}

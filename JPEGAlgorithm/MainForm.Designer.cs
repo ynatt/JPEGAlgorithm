@@ -30,14 +30,12 @@ namespace JPEGAlgorithm
         /// </summary>
         private void InitializeComponent()
         {
+			System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+			System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+			System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
-			System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea3 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-			System.Windows.Forms.DataVisualization.Charting.Legend legend3 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-			System.Windows.Forms.DataVisualization.Charting.Series series3 = new System.Windows.Forms.DataVisualization.Charting.Series();
 			this.openPictureButton = new System.Windows.Forms.Button();
-			this.sourceImageBox = new System.Windows.Forms.PictureBox();
 			this.buttonToRGBMatrix = new System.Windows.Forms.Button();
-			this.resultPictureBox = new System.Windows.Forms.PictureBox();
 			this.dimentionTextBox = new System.Windows.Forms.TextBox();
 			this.xTextBox = new System.Windows.Forms.TextBox();
 			this.yTextBox = new System.Windows.Forms.TextBox();
@@ -51,9 +49,11 @@ namespace JPEGAlgorithm
 			this.quantCoeffLabel = new System.Windows.Forms.Label();
 			this.chart = new System.Windows.Forms.DataVisualization.Charting.Chart();
 			this.dcqCoeff = new System.Windows.Forms.TextBox();
-			((System.ComponentModel.ISupportInitialize)(this.sourceImageBox)).BeginInit();
-			((System.ComponentModel.ISupportInitialize)(this.resultPictureBox)).BeginInit();
+			this.resultPictureBox = new System.Windows.Forms.PictureBox();
+			this.sourceImageBox = new System.Windows.Forms.PictureBox();
 			((System.ComponentModel.ISupportInitialize)(this.chart)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.resultPictureBox)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.sourceImageBox)).BeginInit();
 			this.SuspendLayout();
 			// 
 			// openPictureButton
@@ -66,22 +66,6 @@ namespace JPEGAlgorithm
 			this.openPictureButton.UseVisualStyleBackColor = true;
 			this.openPictureButton.Click += new System.EventHandler(this.openPictureButton_Click);
 			// 
-			// sourceImageBox
-			// 
-			this.sourceImageBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-			this.sourceImageBox.BackColor = System.Drawing.SystemColors.ControlDark;
-			this.sourceImageBox.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-			this.sourceImageBox.Image = global::JPEGAlgorithm.Properties.Resources.TestPicture;
-			this.sourceImageBox.InitialImage = ((System.Drawing.Image)(resources.GetObject("sourceImageBox.InitialImage")));
-			this.sourceImageBox.Location = new System.Drawing.Point(3, 85);
-			this.sourceImageBox.MinimumSize = new System.Drawing.Size(512, 512);
-			this.sourceImageBox.Name = "sourceImageBox";
-			this.sourceImageBox.Size = new System.Drawing.Size(639, 549);
-			this.sourceImageBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
-			this.sourceImageBox.TabIndex = 1;
-			this.sourceImageBox.TabStop = false;
-			// 
 			// buttonToRGBMatrix
 			// 
 			this.buttonToRGBMatrix.Location = new System.Drawing.Point(282, 3);
@@ -91,20 +75,6 @@ namespace JPEGAlgorithm
 			this.buttonToRGBMatrix.Text = "Show sub image";
 			this.buttonToRGBMatrix.UseVisualStyleBackColor = true;
 			this.buttonToRGBMatrix.Click += new System.EventHandler(this.buttonToRGBMatrix_Click);
-			// 
-			// resultPictureBox
-			// 
-			this.resultPictureBox.BackColor = System.Drawing.SystemColors.ControlDark;
-			this.resultPictureBox.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
-			this.resultPictureBox.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-			this.resultPictureBox.InitialImage = null;
-			this.resultPictureBox.Location = new System.Drawing.Point(648, 85);
-			this.resultPictureBox.MinimumSize = new System.Drawing.Size(512, 512);
-			this.resultPictureBox.Name = "resultPictureBox";
-			this.resultPictureBox.Size = new System.Drawing.Size(973, 549);
-			this.resultPictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
-			this.resultPictureBox.TabIndex = 3;
-			this.resultPictureBox.TabStop = false;
 			// 
 			// dimentionTextBox
 			// 
@@ -217,20 +187,20 @@ namespace JPEGAlgorithm
 			// 
 			// chart
 			// 
-			chartArea3.AxisX.IsStartedFromZero = false;
-			chartArea3.CursorX.IsUserEnabled = true;
-			chartArea3.Name = "ChartArea1";
-			this.chart.ChartAreas.Add(chartArea3);
-			legend3.Name = "Legend1";
-			this.chart.Legends.Add(legend3);
-			this.chart.Location = new System.Drawing.Point(3, 640);
+			chartArea1.AxisX.IsStartedFromZero = false;
+			chartArea1.CursorX.IsUserEnabled = true;
+			chartArea1.Name = "ChartArea1";
+			this.chart.ChartAreas.Add(chartArea1);
+			legend1.Name = "Legend1";
+			this.chart.Legends.Add(legend1);
+			this.chart.Location = new System.Drawing.Point(3, 361);
 			this.chart.Name = "chart";
-			series3.ChartArea = "ChartArea1";
-			series3.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Bar;
-			series3.Legend = "Legend1";
-			series3.Name = "DCDiffsBitLength";
-			this.chart.Series.Add(series3);
-			this.chart.Size = new System.Drawing.Size(639, 179);
+			series1.ChartArea = "ChartArea1";
+			series1.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Bar;
+			series1.Legend = "Legend1";
+			series1.Name = "DCDiffsBitLength";
+			this.chart.Series.Add(series1);
+			this.chart.Size = new System.Drawing.Size(480, 156);
 			this.chart.TabIndex = 16;
 			this.chart.Text = "DC Coeffs Diffs";
 			this.chart.Click += new System.EventHandler(this.chart_Click);
@@ -243,12 +213,40 @@ namespace JPEGAlgorithm
 			this.dcqCoeff.TabIndex = 17;
 			this.dcqCoeff.Text = "1";
 			// 
+			// resultPictureBox
+			// 
+			this.resultPictureBox.BackColor = System.Drawing.SystemColors.ControlDark;
+			this.resultPictureBox.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
+			this.resultPictureBox.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+			this.resultPictureBox.Image = global::JPEGAlgorithm.Properties.Resources.Fallout_3_Test_Pattern_52_www_FullHDWpp_com_;
+			this.resultPictureBox.InitialImage = null;
+			this.resultPictureBox.Location = new System.Drawing.Point(485, 85);
+			this.resultPictureBox.Name = "resultPictureBox";
+			this.resultPictureBox.Size = new System.Drawing.Size(768, 432);
+			this.resultPictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+			this.resultPictureBox.TabIndex = 3;
+			this.resultPictureBox.TabStop = false;
+			// 
+			// sourceImageBox
+			// 
+			this.sourceImageBox.BackColor = System.Drawing.SystemColors.ControlDark;
+			this.sourceImageBox.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("sourceImageBox.BackgroundImage")));
+			this.sourceImageBox.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+			this.sourceImageBox.Image = global::JPEGAlgorithm.Properties.Resources.plyazh_tropiki_more_pesok_leto_84726_1920x1080;
+			this.sourceImageBox.InitialImage = ((System.Drawing.Image)(resources.GetObject("sourceImageBox.InitialImage")));
+			this.sourceImageBox.Location = new System.Drawing.Point(3, 85);
+			this.sourceImageBox.Name = "sourceImageBox";
+			this.sourceImageBox.Size = new System.Drawing.Size(480, 270);
+			this.sourceImageBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+			this.sourceImageBox.TabIndex = 1;
+			this.sourceImageBox.TabStop = false;
+			// 
 			// MainForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.BackColor = System.Drawing.SystemColors.ControlDarkDark;
-			this.ClientSize = new System.Drawing.Size(1624, 820);
+			this.ClientSize = new System.Drawing.Size(1256, 520);
 			this.Controls.Add(this.dcqCoeff);
 			this.Controls.Add(this.chart);
 			this.Controls.Add(this.quantCoeffLabel);
@@ -270,9 +268,9 @@ namespace JPEGAlgorithm
 			this.Name = "MainForm";
 			this.Text = "JPEGAlgorithm";
 			this.Load += new System.EventHandler(this.MainForm_Load);
-			((System.ComponentModel.ISupportInitialize)(this.sourceImageBox)).EndInit();
-			((System.ComponentModel.ISupportInitialize)(this.resultPictureBox)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.chart)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.resultPictureBox)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.sourceImageBox)).EndInit();
 			this.ResumeLayout(false);
 			this.PerformLayout();
 

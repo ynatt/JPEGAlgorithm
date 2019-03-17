@@ -103,7 +103,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\TestPicture.png" />
+    <None Include="Resources\plyazh_tropiki_more_pesok_leto_84726_1920x1080.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Fallout-3-Test-Pattern-52_www.FullHDWpp.com_.jpg" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

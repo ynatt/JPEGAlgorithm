@@ -62,8 +62,8 @@ namespace JPEGAlgorithm
 				sb.Append("Intervals with id = ").Append(id).AppendLine();
 				foreach (var interval in this.intervals[id]) {
 					ts = interval.end - interval.start;
-					sb.Append("  ").Append(interval.title).AppendLine();
-					sb.Append("  ").Append("Duration = ")
+					sb.Append("   ").Append(interval.title).AppendLine();
+					sb.Append("      ").Append("Duration = ")
 						.Append(ts.Seconds)
 						.Append(" sec ")
 						.Append(ts.Milliseconds)

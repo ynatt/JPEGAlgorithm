@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace JPEGAlgorithm {
     class MathUtils {
-        public static void RoundMatrix(double[,] matrix) {
+        public static void RoundMatrix(float[,] matrix) {
             var w = matrix.GetLength(0);
             var h = matrix.GetLength(1);
             for (var i = 0; i < w; i++) {
@@ -16,7 +16,7 @@ namespace JPEGAlgorithm {
             }
         }
 
-        public static void Quantize(double[,] matrix, double[,] qMatrix) {
+        public static void Quantize(float[,] matrix, float[,] qMatrix) {
             var n = matrix.GetLength(0);
             for (var i = 0; i < n; i++) {
                 for (var j = 0; j < n; j++) {
@@ -25,7 +25,7 @@ namespace JPEGAlgorithm {
             }
         }
 		
-		public static void Dequantize(double[,] matrix, double[,] qMatrix) {
+		public static void Dequantize(float[,] matrix, float[,] qMatrix) {
 			var n = matrix.GetLength(0);
 			for (var i = 0; i < n; i++) {
 				for (var j = 0; j < n; j++) {
@@ -43,8 +43,8 @@ namespace JPEGAlgorithm {
 															{255, 255, 255, 255, 255, 255, 255, 255},
 															{255, 255, 255, 255, 255, 255, 255, 255}};
 
-		public static double[,] BuildQuantizationMatrix(double acq, double dcq, int n) {
-			var matrix = new double[n, n];
+		public static float[,] BuildQuantizationMatrix(float acq, float dcq, int n) {
+			var matrix = new float[n, n];
             for (var i = 0; i < n; i++) {
                 for (var j = 0; j < n; j++) {
                     matrix[i, j] = 3 * dcq + (i + j) * acq;

@@ -148,7 +148,7 @@ namespace JPEGAlgorithm
         }
 
         public ImageBlock GetImageBlock(Channel channel) {
-            int[,] data = new int[width, height];
+            var data = new int[width, height];
             ImageBlock block = new ImageBlock(data);
             for (var x = 0; x < width; x++) {
                 for (var y = 0; y < height; y++) {

@@ -13,8 +13,8 @@ namespace JPEGAlgorithm {
         private int width;
 
         public ImageBlock(int[,] data) {
-            Height = data.GetLength(0);
-            Width = data.GetLength(1);
+            Width = data.GetLength(0);
+            Height = data.GetLength(1);
             this.data = data;
         }
 

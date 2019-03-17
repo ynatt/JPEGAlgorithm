@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 
 namespace JPEGAlgorithm {
 	class DCTChunk {
-		private double[][,] y;
+		private float[][,] y;
 
-		private double[,] cb;
+		private float[,] cb;
 
-		private double[,] cr;
+		private float[,] cr;
 
 		public DCTChunk(Chunk chunk) {
-			y = new double[Chunk.BLOCKS_COUNT][,];
+			y = new float[Chunk.BLOCKS_COUNT][,];
 			for (int i = 0; i < Chunk.BLOCKS_COUNT; i++) {
 				Y[i] = TransformsUtils.DCT(chunk.Y[i]);
 			}
@@ -21,21 +21,21 @@ namespace JPEGAlgorithm {
 			cr = TransformsUtils.DCT(chunk.Cr);
 		}
 
-		public double[][,] Y { get => y; }
-		public double[,] Cb { get => cb; }
-		public double[,] Cr { get => cr; }
+		public float[][,] Y { get => y; }
+		public float[,] Cb { get => cb; }
+		public float[,] Cr { get => cr; }
 
 		public override string ToString() {
 			StringBuilder sb = new StringBuilder();
 			for (int i = 0; i < Chunk.BLOCKS_COUNT; i++) {
-				sb.Append("DCT coeffs of Y" + i).AppendLine().Append(MatrixUtils<double>.ToString(y[i])).AppendLine();
+				sb.Append("DCT coeffs of Y" + i).AppendLine().Append(MatrixUtils<float>.ToString(y[i])).AppendLine();
 			}
-			sb.Append("DCT coeffs of Cb").AppendLine().Append(MatrixUtils<double>.ToString(cb)).AppendLine();
-			sb.Append("DCT coeffs of Cr").AppendLine().Append(MatrixUtils<double>.ToString(cr)).AppendLine();
+			sb.Append("DCT coeffs of Cb").AppendLine().Append(MatrixUtils<float>.ToString(cb)).AppendLine();
+			sb.Append("DCT coeffs of Cr").AppendLine().Append(MatrixUtils<float>.ToString(cr)).AppendLine();
 			return sb.ToString();
 		}
 
-		public void Quantize(double q, double[,] quantizeMatrix) {
+		public void Quantize(double q, float[,] quantizeMatrix) {
 			for (int i = 0; i < Chunk.BLOCKS_COUNT; i++) {
 				MathUtils.RoundMatrix(Y[i]);
 				MathUtils.Quantize(Y[i], quantizeMatrix);
@@ -49,7 +49,7 @@ namespace JPEGAlgorithm {
 			MathUtils.RoundMatrix(cr);
 		}
 
-		public void Dequantize(double q, double[,] quantizeMatrix) {
+		public void Dequantize(double q, float[,] quantizeMatrix) {
 			for (int i = 0; i < Chunk.BLOCKS_COUNT; i++) {
 				MathUtils.Dequantize(Y[i], quantizeMatrix);
 				MathUtils.RoundMatrix(Y[i]);
