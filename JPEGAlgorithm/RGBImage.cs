@@ -133,24 +133,9 @@ namespace JPEGAlgorithm
                             blue = pixel.b;
                             break;
                     }
-					if (red < 0) {
-						red = 0;
-					}
-					if (red > 255) {
-						red = 255;
-					}
-					if (green < 0) {
-						green = 0;
-					}
-					if (green > 255) {
-						green = 255;
-					}
-					if (blue < 0) {
-						blue = 0;
-					}
-					if (blue > 255) {
-						blue = 255;
-					}
+					red = red < 0 ? 0 : red > 255 ? 255 : red;
+					green = green < 0 ? 0 : green > 255 ? 255 : green;
+					blue = blue < 0 ? 0 : blue > 255 ? 255 : blue;
 					pointer = (y * width + x) * 3;
 					bytes[pointer++] = (byte) blue;
 					bytes[pointer++] = (byte) green;

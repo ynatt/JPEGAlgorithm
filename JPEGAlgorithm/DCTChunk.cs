@@ -37,14 +37,14 @@ namespace JPEGAlgorithm {
 
 		public void Quantize(double q, float[,] quantizeMatrix) {
 			for (int i = 0; i < Chunk.BLOCKS_COUNT; i++) {
-				MathUtils.RoundMatrix(Y[i]);
+				//MathUtils.RoundMatrix(Y[i]);
 				MathUtils.Quantize(Y[i], quantizeMatrix);
 				MathUtils.RoundMatrix(Y[i]);
 			}
-			MathUtils.RoundMatrix(cb);
+			//MathUtils.RoundMatrix(cb);
 			MathUtils.Quantize(cb, quantizeMatrix);
 			MathUtils.RoundMatrix(cb);
-			MathUtils.RoundMatrix(cr);
+			//MathUtils.RoundMatrix(cr);
 			MathUtils.Quantize(cr, quantizeMatrix);
 			MathUtils.RoundMatrix(cr);
 		}

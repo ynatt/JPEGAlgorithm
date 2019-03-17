@@ -24,8 +24,8 @@ namespace JPEGAlgorithm
 			var pointer = 0;
             for (int i = 0; i < width; i++) {
                 for (int j = 0; j < height; j++) {
-					pointer = (j * width + i) * 3;
-                    result[i, j] = new RGBPixel(bytes[pointer + 2], bytes[pointer + 1], bytes[pointer]);
+					pointer = (j * width + i) * 3 + 2;
+                    result[i, j] = new RGBPixel(bytes[pointer--], bytes[pointer--], bytes[pointer]);
                 }
             }
             return result;

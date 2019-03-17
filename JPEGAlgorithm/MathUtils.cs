@@ -16,6 +16,18 @@ namespace JPEGAlgorithm {
             }
         }
 
+		public static int[,] RoundFloatMatrix(float[,] matrix) {
+			var w = matrix.GetLength(0);
+			var h = matrix.GetLength(1);
+			var result = new int[w, h];
+			for (var i = 0; i < w; i++) {
+				for (var j = 0; j < h; j++) {
+					result[i, j] = (int)Math.Round(matrix[i, j]);
+				}
+			}
+			return result;
+		}
+
         public static void Quantize(float[,] matrix, float[,] qMatrix) {
             var n = matrix.GetLength(0);
             for (var i = 0; i < n; i++) {

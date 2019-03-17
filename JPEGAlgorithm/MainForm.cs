@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -165,40 +166,46 @@ namespace JPEGAlgorithm
 			var chunks = fittedToChunksImage.ToBlockArray(chunkSize, out int widthBlocks, out int heightBlocks);
 			var dcCoeffs = new List<int>();
             Chunk chunk;
-            DCTChunk dCTChunk;
-			List<DCTChunk> dCTChunks = new List<DCTChunk>(chunks.Length);
+            //DCTChunk dCTChunk;
+			var dCTChunks = new DCTChunk[chunks.Length];
             var quantizeMatrix = MathUtils.BuildQuantizationMatrix(quantCoeff, dcqCoeff, 8);
 			timer.End(SUB_ID, PREP);
 			timer.Start(SUB_ID, DCT_OF_CHUNK);
-			for (int i = 0; i < chunks.Length; i++) {
+			var flag = Parallel.ForEach(chunks, (elem, loopState, elementIndex)  => {
+				var dCTChunk = new DCTChunk(new Chunk(chunks[elementIndex]));
+				dCTChunk.Quantize(quantCoeff, quantizeMatrix);
+				dCTChunks[elementIndex] = dCTChunk;
+			});
+			while (!flag.IsCompleted) ;
+			/*for (int i = 0; i < chunks.Length; i++) {
                 chunk = new Chunk(chunks[i]);
 				dCTChunk = new DCTChunk(chunk);
 				dCTChunk.Quantize(quantCoeff, quantizeMatrix);
 				dCTChunks.Add(dCTChunk);
-                dcCoeffs.AddRange(dCTChunk.getDCCoeffs());
-			}
+                //dcCoeffs.AddRange(dCTChunk.getDCCoeffs());
+			}*/
 			timer.End(SUB_ID, DCT_OF_CHUNK);
-			timer.Start(SUB_ID, HAFFMAN);
+			//timer.Start(SUB_ID, HAFFMAN);
 			//Console.WriteLine(String.Join(", ", dcCoeffs.ToArray()));
-			var dcDiffs = MathUtils.MakeDiffOfDCCoeffs(dcCoeffs);
-			var coeffsLengths = dcDiffs.ConvertAll(c => NumberUtils.GetBitsLength(c));
+			//var dcDiffs = MathUtils.MakeDiffOfDCCoeffs(dcCoeffs);
+			//var coeffsLengths = dcDiffs.ConvertAll(c => NumberUtils.GetBitsLength(c));
             //Console.WriteLine(String.Join(", ", MathUtils.buildBarChart(dcCoeffs.ToArray()).ToArray()));
-            var barChart = MathUtils.BuildBarChart(coeffsLengths);
-			var tuples = barChart.Select(entry => new Tuple<int, int>(entry.Key, entry.Value));
-			var compressor = new HaffmanCompress(tuples);
-			compressor.buildTree();
-			compressor.buildCodeTable();
-			chart.Series["DCDiffsBitLength"].Points.DataBindXY(barChart.Keys, barChart.Values);
-			timer.End(SUB_ID, HAFFMAN);
+            //var barChart = MathUtils.BuildBarChart(coeffsLengths);
+			//var tuples = barChart.Select(entry => new Tuple<int, int>(entry.Key, entry.Value));
+			//var compressor = new HaffmanCompress(tuples);
+			//compressor.buildTree();
+			//compressor.buildCodeTable();
+			//chart.Series["DCDiffsBitLength"].Points.DataBindXY(barChart.Keys, barChart.Values);
+			//timer.End(SUB_ID, HAFFMAN);
 			var listOfDecompressedImages = new List<YCbCrImage>();
 			var listOfDecompressedChunks = new List<Chunk>();
 			timer.Start(SUB_ID, REVERSE_DCT);
-			for (int i = 0; i < dCTChunks.Count; i++) {
+			for (int i = 0; i < dCTChunks.Length; i++) {
 				dCTChunks[i].Dequantize(quantCoeff, quantizeMatrix);
 				listOfDecompressedChunks.Add(new Chunk(dCTChunks[i]));
 			}
 			timer.End(SUB_ID, REVERSE_DCT);
-			for (int i = 0; i < dCTChunks.Count; i++) {
+			for (int i = 0; i < dCTChunks.Length; i++) {
 				listOfDecompressedImages.Add(YCbCrImage.FromChunk(listOfDecompressedChunks[i]));
 			}
 			var matrix = new YCbCrImage[widthBlocks, heightBlocks];
@@ -226,5 +233,34 @@ namespace JPEGAlgorithm
         {
 
         }
-    }
+
+		private void button1_Click_1(object sender, EventArgs e) {
+			var vector = new float[] { 0.3536f, 0.3536f, 0.6464f, 1.0607f, 0.3536f, -1.0607f, -1.3536f, -0.3536f};
+			var timer = Timer.GetInstance();
+
+			var matrix = new int[,] {  {160, 110, 110, 160, 140, 255, 255, 255},
+															{120, 120, 140, 190, 255, 255, 255, 255},
+															{140, 130, 160, 240, 255, 255, 255, 255},
+															{140, 170, 220, 255, 255, 255, 255, 255},
+															{180, 220, 255, 255, 255, 255, 255, 255},
+															{240, 255, 255, 255, 255, 255, 255, 255},
+															{255, 255, 255, 255, 255, 255, 255, 255},
+															{255, 255, 255, 255, 255, 255, 255, 255}};
+			var block = new ImageBlock(matrix);
+			timer.Start("Main", "d2 dct 1");
+			MatrixUtils<float>.Show(TransformsUtils.DCT(block));
+			timer.End("Main", "d2 dct 1");
+			timer.Start("Main", "d2 dct 2");
+			MatrixUtils<int>.Show(TransformsUtils.Reverse_DCT(TransformsUtils.DCT(block)));
+			timer.End("Main", "d2 dct 2");
+			timer.Start("Main", "d1 dct 1");
+			TransformsUtils.DCT_1(block);
+			timer.End("Main", "d1 dct 1");
+			timer.Start("Main", "d1 dct 2");
+			TransformsUtils.DCT_1(block);
+			timer.End("Main", "d1 dct 2");
+			timer.DisplayIntervals();
+			Console.WriteLine(String.Join(", ", TransformsUtils.Reverse_DCT_d1_NotOptimized(TransformsUtils.DCT_d1_NotOptimized(vector))));
+		}
+	}
 }
