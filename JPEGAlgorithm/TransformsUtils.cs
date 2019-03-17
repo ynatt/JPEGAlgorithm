@@ -98,6 +98,37 @@ namespace JPEGAlgorithm {
 			return result;
 		}
 
+		private static float a = (float) Math.Cos(Math.PI / 16);
+		private static float b = (float) Math.Cos(3 * Math.PI / 16);
+		private static float c = (float) Math.Cos(5 * Math.PI / 16);
+		private static float d = (float) Math.Cos(7 * Math.PI / 16);
+		private static float l = (float) Math.Cos(6 * Math.PI / 16);
+		private static float f = (float) Math.Cos(Math.PI / 8);
+		private static float g = (float) Math.Cos(Math.PI / 4);
+		private static float c_0 = (float)(1 / Math.Sqrt(8));
+
+		public static float[] DCT_d1_Optimized(float[] x) {
+			var X = new float[8];
+			var z = new float[8];
+			z[0] = x[0] - x[7];
+			z[1] = x[2] - x[5];
+			z[2] = x[4] - x[3];
+			z[3] = x[6] - x[1];
+			z[4] = x[0] + x[7] - x[4] - x[3];
+			z[5] = x[2] + x[5] - x[6] - x[1];
+			z[6] = x[0] + x[7] + x[4] + x[3] - x[2] - x[5] - x[6] - x[1];
+			z[7] = x[0] + x[7] + x[4] + x[3] + x[2] + x[5] + x[6] + x[1];
+			X[1] = 0.5f * (a * z[0] + c * z[1] - d * z[2] - b * z[3]);
+			X[5] = 0.5f * (c * z[0] + d * z[1] - b * z[2] + a * z[3]);
+			X[7] = 0.5f * (d * z[0] + b * z[1] + a * z[2] + c * z[3]);
+			X[3] = 0.5f * (b * z[0] - a * z[1] + c * z[2] + d * z[3]);
+			X[2] = 0.5f * (f * z[4] - l * z[5]);
+			X[6] = 0.5f * (l * z[4] + f * z[5]);
+			X[4] = 0.5f * g * z[6];
+			X[0] = c_0 * z[7];
+			return X;
+		}
+
 		public static float[] Reverse_DCT_d1_NotOptimized(float[] vector) {
 			var N = vector.Length;
 			var result = new float[N];
@@ -148,7 +179,7 @@ namespace JPEGAlgorithm {
 				for (var j = 0; j < N; j++) {
 					vector[j] = matrix[i , j];
 				}
-				vector = DCT_d1_NotOptimized(vector);
+				vector = DCT_d1_Optimized(vector);
 				for (var j = 0; j < N; j++) {
 					result[i, j] = vector[j];
 				}
@@ -157,7 +188,7 @@ namespace JPEGAlgorithm {
 				for (var j = 0; j < N; j++) {
 					vector[j] = result[j, i];
 				}
-				vector = DCT_d1_NotOptimized(vector);
+				vector = DCT_d1_Optimized(vector);
 				for (var j = 0; j < N; j++) {
 					result[j, i] = vector[j];
 				}

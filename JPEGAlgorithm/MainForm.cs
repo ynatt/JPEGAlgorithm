@@ -165,8 +165,6 @@ namespace JPEGAlgorithm
 			timer.End(SUB_ID, FITTING);
 			var chunks = fittedToChunksImage.ToBlockArray(chunkSize, out int widthBlocks, out int heightBlocks);
 			var dcCoeffs = new List<int>();
-            Chunk chunk;
-            //DCTChunk dCTChunk;
 			var dCTChunks = new DCTChunk[chunks.Length];
             var quantizeMatrix = MathUtils.BuildQuantizationMatrix(quantCoeff, dcqCoeff, 8);
 			timer.End(SUB_ID, PREP);
@@ -181,7 +179,7 @@ namespace JPEGAlgorithm
                 chunk = new Chunk(chunks[i]);
 				dCTChunk = new DCTChunk(chunk);
 				dCTChunk.Quantize(quantCoeff, quantizeMatrix);
-				dCTChunks.Add(dCTChunk);
+				dCTChunks[i] = dCTChunk;
                 //dcCoeffs.AddRange(dCTChunk.getDCCoeffs());
 			}*/
 			timer.End(SUB_ID, DCT_OF_CHUNK);
@@ -189,31 +187,35 @@ namespace JPEGAlgorithm
 			//Console.WriteLine(String.Join(", ", dcCoeffs.ToArray()));
 			//var dcDiffs = MathUtils.MakeDiffOfDCCoeffs(dcCoeffs);
 			//var coeffsLengths = dcDiffs.ConvertAll(c => NumberUtils.GetBitsLength(c));
-            //Console.WriteLine(String.Join(", ", MathUtils.buildBarChart(dcCoeffs.ToArray()).ToArray()));
-            //var barChart = MathUtils.BuildBarChart(coeffsLengths);
+			//Console.WriteLine(String.Join(", ", MathUtils.buildBarChart(dcCoeffs.ToArray()).ToArray()));
+			//var barChart = MathUtils.BuildBarChart(coeffsLengths);
 			//var tuples = barChart.Select(entry => new Tuple<int, int>(entry.Key, entry.Value));
 			//var compressor = new HaffmanCompress(tuples);
 			//compressor.buildTree();
 			//compressor.buildCodeTable();
 			//chart.Series["DCDiffsBitLength"].Points.DataBindXY(barChart.Keys, barChart.Values);
 			//timer.End(SUB_ID, HAFFMAN);
-			var listOfDecompressedImages = new List<YCbCrImage>();
-			var listOfDecompressedChunks = new List<Chunk>();
+			var listOfDecompressedImages = new YCbCrImage[dCTChunks.Length];
+			var listOfDecompressedChunks = new Chunk[dCTChunks.Length];
 			timer.Start(SUB_ID, REVERSE_DCT);
-			for (int i = 0; i < dCTChunks.Length; i++) {
+			flag = Parallel.ForEach(dCTChunks, (elem, loopState, i) => {
 				dCTChunks[i].Dequantize(quantCoeff, quantizeMatrix);
-				listOfDecompressedChunks.Add(new Chunk(dCTChunks[i]));
-			}
+				listOfDecompressedChunks[i] = new Chunk(dCTChunks[i]);
+				listOfDecompressedImages[i] = YCbCrImage.FromChunk(listOfDecompressedChunks[i]);
+			});
+			while (!flag.IsCompleted) ;
 			timer.End(SUB_ID, REVERSE_DCT);
-			for (int i = 0; i < dCTChunks.Length; i++) {
-				listOfDecompressedImages.Add(YCbCrImage.FromChunk(listOfDecompressedChunks[i]));
-			}
 			var matrix = new YCbCrImage[widthBlocks, heightBlocks];
-			for (int i = 0; i < widthBlocks; i++) {
+			flag = Parallel.ForEach(listOfDecompressedImages, (elem, loopState, k) => {
+				var j = k / widthBlocks;
+				matrix[k - j * widthBlocks, j] = elem;
+			});
+			while (!flag.IsCompleted) ;
+			/*for (int i = 0; i < widthBlocks; i++) {
 				for (int j = 0; j < heightBlocks; j++) {
 					matrix[i, j] = listOfDecompressedImages[j * widthBlocks + i];
 				}
-			}
+			}*/
 			var decompressedImage = YCbCrImage.FromMatrix(matrix).ToRGBImage(originalWidth, originalHeight);
 			timer.Start(SUB_ID, FROM_RGBIMAGE_TO_IMAGE);
 			resultPictureBox.Image = decompressedImage.ToImage();

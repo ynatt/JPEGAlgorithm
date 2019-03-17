@@ -17,7 +17,7 @@ namespace JPEGAlgorithm {
             for (var i = 0; i < w; i+=2) {
                 for (var j = 0; j < h; j+=2) {
                     average = (array[i, j] + array[i+1, j] + array[i, j+1] + array[i+1, j+1])/4;
-                    array[i, j] = array[i+1, j] = array[i, j+1] = array[i+1, j+1] = (int) Math.Round(average);
+                    array[i, j] = array[i+1, j] = array[i, j+1] = array[i+1, j+1] = (int) average;
                 }
             }
             return imageBlock;
@@ -36,7 +36,7 @@ namespace JPEGAlgorithm {
                     for (int i = 4 * k, u = 0; i < 4 * (1 + k); i++, u+=2) {
                         for (int j = 4 * t, v = 0; j < 4 * (1 + t); j++, v+=2) {
                             average = ((float)(data[u, v] + data[u + 1, v] + data[u, v + 1] + data[u + 1, v + 1])) / 4;
-                            resData[i, j] = (int)Math.Round(average);
+                            resData[i, j] = (int)average;
                         }
                     }
                 }

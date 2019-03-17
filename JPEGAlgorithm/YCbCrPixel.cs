@@ -21,7 +21,7 @@ namespace JPEGAlgorithm
 			var r = y + 1.402 * (cr - 128);
 			var g = y - 0.34414 * (cb - 128) - 0.71414 * (cr - 128);
 			var b = y + 1.772 * (cb - 128);
-			return new RGBPixel((int)Math.Round(r), (int)Math.Round(g), (int)Math.Round(b));
+			return new RGBPixel((int)r, (int)g, (int)b);
 		}
 
         public override string ToString() {
