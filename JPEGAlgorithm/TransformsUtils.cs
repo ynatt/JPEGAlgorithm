@@ -34,8 +34,8 @@ namespace JPEGAlgorithm {
             }
             return result;
         }
-		[MethodImpl(MethodImplOptions.Synchronized)]
-		private static float[,] CountCosMatrixFor(int n) {
+		
+		public static float[,] CountCosMatrixFor(int n) {
 			if (!cosMatrixes.ContainsKey(n)) {
 				var res = new float[n, n];
 				for (int i = 0; i < n; i++) {
