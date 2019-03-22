@@ -83,26 +83,6 @@ namespace JPEGAlgorithm
         }
 
         public Image ToImage() {
-            return ToImage(Channel.ALL);
-        }
-
-        public Image GetRedChannel() {
-            return ToImage(Channel.RED);
-        }
-
-        public Image GetGreenChannel() {
-            return ToImage(Channel.GREEN);
-        }
-
-        public Image GetBlueChannel() {
-            return ToImage(Channel.BLUE);
-        } 
-
-        public enum Channel { 
-            RED,GREEN,BLUE,ALL
-        }
-
-        public Image ToImage(Channel channel) {
             Bitmap result = new Bitmap(width, height, PixelFormat.Format24bppRgb);
 			Rectangle rect = new Rectangle(0, 0, width, height);
 			BitmapData bitmapData = result.LockBits(rect, ImageLockMode.WriteOnly, result.PixelFormat);
@@ -114,32 +94,19 @@ namespace JPEGAlgorithm
             int green;
             int blue;
 			int pointer = 0;
-            for (var x = 0; x < width; x++) {
-                for (var y = 0; y < height; y++) {
+            for (var y = 0; y < height; y++) {
+				pointer = bitmapData.Stride * y;
+				for (var x = 0; x < width; x++) {
                     pixel = pixels[x, y];
-                    switch (channel) {
-                        case Channel.RED:
-                            red = green = blue = pixel.r;
-                            break;
-                        case Channel.GREEN:
-                            red = green = blue = pixel.g;
-                            break;
-                        case Channel.BLUE:
-                            red = green = blue = pixel.b;
-                            break;
-                        default:
-                            red = pixel.r;
-                            green = pixel.g;
-                            blue = pixel.b;
-                            break;
-                    }
+                    red = pixel.r;
+                    green = pixel.g;
+                    blue = pixel.b;
 					red = red < 0 ? 0 : red > 255 ? 255 : red;
 					green = green < 0 ? 0 : green > 255 ? 255 : green;
 					blue = blue < 0 ? 0 : blue > 255 ? 255 : blue;
-					pointer = (y * width + x) * 3;
 					bytes[pointer++] = (byte) blue;
 					bytes[pointer++] = (byte) green;
-					bytes[pointer] = (byte) red;
+					bytes[pointer++] = (byte) red;
                 }
             }
 			Marshal.Copy(bytes, 0 , ptr, bytes.Length);

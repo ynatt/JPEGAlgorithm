@@ -40,6 +40,8 @@ namespace JPEGAlgorithm
         }
 
         private void CompressButton_Click(object sender, EventArgs e) {
+			compressProgressBar.Visible = true;
+			compressProgressBar.Value = 0;
 			Timer timer = Timer.GetInstance();
 			var MAIN_ID = "Main";
 			var FULL_COMPRESS = "Compress of image";
@@ -63,6 +65,7 @@ namespace JPEGAlgorithm
 			timer.Start(SUB_ID, TO_RGB_IMAGE);
 			var rgbImage = new RGBImage(sourceImage);
 			timer.End(SUB_ID, TO_RGB_IMAGE);
+			compressProgressBar.Value += 20;
 			timer.Start(SUB_ID, FITTING);
 			var fittedToChunksImage = ImageUtils.FitToBlockSize(rgbImage, chunkSize);
 			timer.End(SUB_ID, FITTING);
@@ -71,6 +74,7 @@ namespace JPEGAlgorithm
 			var dCTChunks = new DCTChunk[chunks.Length];
             var quantizeMatrix = MathUtils.BuildQuantizationMatrix(quantCoeffAC, quantCoeffDC, 8);
 			timer.End(SUB_ID, PREP);
+			compressProgressBar.Value += 20;
 			timer.Start(SUB_ID, DCT_OF_CHUNK);
 			TransformsUtils.CountCosMatrixFor(8);
 			var parallelOptions = new ParallelOptions() { MaxDegreeOfParallelism = 8 };
@@ -81,6 +85,7 @@ namespace JPEGAlgorithm
 			});
 			while (!flag.IsCompleted) ;
 			timer.End(SUB_ID, DCT_OF_CHUNK);
+			compressProgressBar.Value += 20;
 			//timer.Start(SUB_ID, HAFFMAN);
 			//Console.WriteLine(String.Join(", ", dcCoeffs.ToArray()));
 			//var dcDiffs = MathUtils.MakeDiffOfDCCoeffs(dcCoeffs);
@@ -104,12 +109,16 @@ namespace JPEGAlgorithm
 				var j = i / widthBlocks;
 				matrix[i - j * widthBlocks, j] = listOfDecompressedImages[i];
 			});
+			compressProgressBar.Value += 20;
 			while (!flag.IsCompleted) ;
 			timer.End(SUB_ID, REVERSE_DCT);
 			var decompressedImage = YCbCrImage.FromMatrix(matrix).ToRGBImage(originalWidth, originalHeight);
 			resultPictureBox.Image = decompressedImage.ToImage();
 			timer.End(MAIN_ID, FULL_COMPRESS);
+			compressProgressBar.Value += 20;
 			timer.DisplayIntervals();
+			compressProgressBar.Visible = false;
+			compressTimeValue.Text = timer.getTimeOf(MAIN_ID, FULL_COMPRESS);
 		}
 	}
 }

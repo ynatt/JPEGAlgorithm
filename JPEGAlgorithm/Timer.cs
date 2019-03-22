@@ -55,6 +55,12 @@ namespace JPEGAlgorithm
 			}
 		}
 
+		public string getTimeOf(string id, string title) {
+			var interval = intervals[id].Find(e => e.title.Equals(title));
+			var ts = interval.end - interval.start;
+			return ts.Seconds + " sec " + ts.Milliseconds + " ms";
+		}
+
 		public void DisplayIntervals() {
 			var sb = new StringBuilder();
 			TimeSpan ts;

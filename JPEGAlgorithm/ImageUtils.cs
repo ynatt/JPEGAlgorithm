@@ -21,12 +21,16 @@ namespace JPEGAlgorithm
 			byte[] bytes = new byte[Math.Abs(bitmapData.Stride) * height];
 			Marshal.Copy(ptr, bytes, 0, bytes.Length);
 			((Bitmap)image).UnlockBits(bitmapData);
+			var pixelSize = Image.GetPixelFormatSize(image.PixelFormat) / 8;
 			var pointer = 0;
-            for (int i = 0; i < width; i++) {
-                for (int j = 0; j < height; j++) {
-					pointer = (j * width + i) * 3 + 2;
-                    result[i, j] = new RGBPixel(bytes[pointer--], bytes[pointer--], bytes[pointer]);
-                }
+			var k = 0;
+            for (int j = 0; j < height; j++) {
+				pointer = bitmapData.Stride * j;
+				for (int i = 0; i < width; i++) {
+                    result[i, j] = new RGBPixel(bytes[pointer + k + 2], bytes[pointer + k + 1], bytes[pointer + k]);
+					k += pixelSize;
+				}
+				k = 0;
             }
             return result;
         }
