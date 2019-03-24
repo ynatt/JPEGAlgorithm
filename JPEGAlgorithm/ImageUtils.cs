@@ -35,6 +35,25 @@ namespace JPEGAlgorithm
             return result;
         }
 
+		public static Image SubImage(Image image, int x, int y, int width, int height) {
+			Rectangle rect = new Rectangle(x, y, width, height);
+			BitmapData sourceBitmapData = ((Bitmap)image).LockBits(rect, ImageLockMode.ReadOnly, image.PixelFormat);
+			byte[] bytes = new byte[sourceBitmapData.Stride * height];
+			Marshal.Copy(sourceBitmapData.Scan0, bytes, 0, bytes.Length);
+			((Bitmap)image).UnlockBits(sourceBitmapData);
+			Bitmap result = new Bitmap(width, height, image.PixelFormat);
+			rect = new Rectangle(0, 0, width, height);
+			var resultBitmapData = result.LockBits(rect, ImageLockMode.WriteOnly, image.PixelFormat);
+			var resBytes = new byte[resultBitmapData.Stride * height];
+			var pixelSize = Image.GetPixelFormatSize(image.PixelFormat) / 8;
+			for (int j = 0; j < height; j++) {
+				Array.Copy(bytes, j * sourceBitmapData.Stride + x * pixelSize, resBytes, j * resultBitmapData.Stride, width * 3);
+			}
+			Marshal.Copy(resBytes, 0, resultBitmapData.Scan0, resBytes.Length);
+			result.UnlockBits(resultBitmapData);
+			return result;
+		}
+
         public static YCbCrPixel[,] toYCCMatrix(RGBPixel[,] source) {
             int rows = source.GetLength(0);
             int columns = source.GetLength(1);

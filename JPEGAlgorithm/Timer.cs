@@ -13,6 +13,7 @@ namespace JPEGAlgorithm
 
 		private Timer() {
 			intervals = new Dictionary<string, List<Interval>>();
+			instance = this;
 		}
 
 		public static Timer GetInstance() {
@@ -55,10 +56,14 @@ namespace JPEGAlgorithm
 			}
 		}
 
-		public string getTimeOf(string id, string title) {
+		public string GetTimeOf(string id, string title) {
 			var interval = intervals[id].Find(e => e.title.Equals(title));
 			var ts = interval.end - interval.start;
 			return ts.Seconds + " sec " + ts.Milliseconds + " ms";
+		}
+
+		public void Clear() {
+			intervals.Clear();
 		}
 
 		public void DisplayIntervals() {
