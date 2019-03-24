@@ -28,7 +28,7 @@ namespace JPEGAlgorithm
             this.sourceImage = sourceImage;
         }
 
-        public Image Compress(float quantCoeffDC, float quantCoeffAC) {
+        public Image Compress(float quantCoeffCbCrDC, float quantCoeffCbCrAC, bool yQuantEnabled, float quantCoeffYDC, float quantCoeffYAC) {
 			Timer timer = Timer.GetInstance();
 			timer.Clear();
 			timer.Start(MAIN_ID, FULL_COMPRESS);
@@ -44,14 +44,21 @@ namespace JPEGAlgorithm
 			var chunks = fittedToChunksImage.ToBlockArray(CHUNK_SIZE, out int widthBlocks, out int heightBlocks);
 			var dcCoeffs = new List<int>();
 			var dCTChunks = new DCTChunk[chunks.Length];
-			var quantizeMatrix = MathUtils.BuildQuantizationMatrix(quantCoeffAC, quantCoeffDC, BLOCK_SIZE);
+			var quantizeCbCrMatrix = MathUtils.BuildQuantizationMatrix(quantCoeffCbCrAC, quantCoeffCbCrDC, BLOCK_SIZE);
+			float[,] quantizeYMatrix = new float[BLOCK_SIZE, BLOCK_SIZE];
+			if (yQuantEnabled) {
+				quantizeYMatrix = MathUtils.BuildQuantizationMatrix(quantCoeffYAC, quantCoeffYDC, BLOCK_SIZE);
+			}
 			timer.End(SUB_ID, PREP);
 			timer.Start(SUB_ID, DCT_OF_CHUNK);
 			TransformsUtils.CountCosMatrixFor(8);
 			var parallelOptions = new ParallelOptions() { MaxDegreeOfParallelism = 8 };
 			var flag = Parallel.ForEach(chunks, parallelOptions, (elem, loopState, elementIndex) => {
 				var dCTChunk = new DCTChunk(new Chunk(chunks[elementIndex]));
-				dCTChunk.Quantize(quantCoeffAC, quantizeMatrix);
+				dCTChunk.QuantizeCbCr(quantizeCbCrMatrix);
+				if (yQuantEnabled) {
+					dCTChunk.QuantizeY(quantizeYMatrix);
+				}
 				dCTChunks[elementIndex] = dCTChunk;
 			});
 			while (!flag.IsCompleted) ;
@@ -61,7 +68,10 @@ namespace JPEGAlgorithm
 			timer.Start(SUB_ID, REVERSE_DCT);
 			var matrix = new YCbCrImage[widthBlocks, heightBlocks];
 			flag = Parallel.ForEach(dCTChunks, parallelOptions, (elem, loopState, i) => {
-				dCTChunks[i].Dequantize(quantCoeffAC, quantizeMatrix);
+				dCTChunks[i].DequantizeCbCr(quantizeCbCrMatrix);
+				if (yQuantEnabled) {
+					dCTChunks[i].DequantizeY(quantizeYMatrix);
+				}
 				listOfDecompressedChunks[i] = new Chunk(dCTChunks[i]);
 				listOfDecompressedImages[i] = YCbCrImage.FromChunk(listOfDecompressedChunks[i]);
 				var j = i / widthBlocks;

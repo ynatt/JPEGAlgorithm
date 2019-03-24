@@ -27,7 +27,8 @@ namespace JPEGAlgorithm
             if (openFileDialog.ShowDialog() == DialogResult.OK) {
                 sourceImageBox.Image = Image.FromFile(openFileDialog.FileName);
             }
-        }        
+			resolutionValue.Text = sourceImageBox.Image.Width + " x " + sourceImageBox.Image.Height;
+		}        
 
         private static void Show(String message, double[,] matrix) {
             StringBuilder sb = new StringBuilder();
@@ -50,10 +51,11 @@ namespace JPEGAlgorithm
 			resultPictureBox.Image = await Task.Factory.StartNew<Image>(() => BeginCompress(),
 				TaskCreationOptions.LongRunning);
 			compressTimeValue.Text = Timer.GetInstance().GetTimeOf(JPEG.MAIN_ID, JPEG.FULL_COMPRESS);
-			CompareImages(200, 400, 50, 50);
+			CountImageError(sourceImageBox.Image, resultPictureBox.Image, mseValueLabel, psnrValueLabel);
 			compressInProcess = false;
 		}
 
+		[MethodImpl(MethodImplOptions.Synchronized)]
 		private void CompareImages(int x, int y, int width, int height) {
 			compareBoxBefore.Image = ImageUtils.SubImage(sourceImageBox.Image, x, y, width, height);
 			compareBoxAfter.Image = ImageUtils.SubImage(resultPictureBox.Image, x, y, width, height);
@@ -62,15 +64,29 @@ namespace JPEGAlgorithm
 		private bool compressInProcess = false;
 
 		private Image BeginCompress() {
-			var quantCoeffAC = float.Parse(this.quantCoeffAC.Text);
-			var quantCoeffDC = float.Parse(this.quantCoeffDC.Text);
+			var quantCoeffCbCrAC = float.Parse(this.quantCoeffCbCrAC.Text);
+			var quantCoeffCbCrDC = float.Parse(this.quantCoeffCbCrDC.Text);
+			var quantCoeffYDC = float.Parse(this.quantCoeffYDC.Text);
+			var quantCoeffYAC = float.Parse(this.quantCoeffYAC.Text);
 			JPEG jpeg = new JPEG(sourceImageBox.Image);
-			return jpeg.Compress(quantCoeffDC, quantCoeffAC);
+			return jpeg.Compress(quantCoeffCbCrDC, quantCoeffCbCrAC, enableQuantOfYCheckBox.Checked, quantCoeffYDC, quantCoeffYAC);
 		}
 
 		private void compareButton_Click(object sender, EventArgs e) {
 			CompareImages(int.Parse(compareXValueBox.Text), int.Parse(compareYValueBox.Text),
 				int.Parse(compareWidthBox.Text), int.Parse(compareHeightBox.Text));
+			CountImageError(compareBoxBefore.Image, compareBoxAfter.Image, compareMSEValue, comparePSNRValue);
+		}
+
+		private void MainForm_Load(object sender, EventArgs e) {
+			resolutionValue.Text = sourceImageBox.Image.Width + " x " + sourceImageBox.Image.Height;
+
+		}
+
+		private void CountImageError(Image a, Image b, Label mseValueLabel, Label psnrValueLabel) {
+			var mse = MathUtils.CountMSE((Bitmap)a, (Bitmap)b);
+			mseValueLabel.Text = "" + mse;
+			psnrValueLabel.Text = "" + MathUtils.CountPSNR(255, mse) + " dB";
 		}
 	}
 }

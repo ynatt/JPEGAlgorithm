@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -46,15 +47,6 @@ namespace JPEGAlgorithm {
 			}
 		}
 
-		private static double[,] matrixQ = new double[,] {  {160, 110, 110, 160, 140, 255, 255, 255},
-															{120, 120, 140, 190, 255, 255, 255, 255}, 
-															{140, 130, 160, 240, 255, 255, 255, 255},
-															{140, 170, 220, 255, 255, 255, 255, 255},
-															{180, 220, 255, 255, 255, 255, 255, 255},
-															{240, 255, 255, 255, 255, 255, 255, 255},
-															{255, 255, 255, 255, 255, 255, 255, 255},
-															{255, 255, 255, 255, 255, 255, 255, 255}};
-
 		public static float[,] BuildQuantizationMatrix(float acq, float dcq, int n) {
 			var matrix = new float[n, n];
             for (var i = 0; i < n; i++) {
@@ -89,6 +81,28 @@ namespace JPEGAlgorithm {
 				diffs.Add(dcCoeffs[i] - dcCoeffs[i - 1]);
 			}
 			return diffs;
+		}
+
+		public static double CountMSE(Bitmap a, Bitmap b) {
+			var w = a.Width;
+			var h = a.Height;
+			double value = 0;
+			Color colorA;
+			Color colorB;
+			for (int i = 0; i < w; i++) {
+				for (int j = 0; j < h; j++) {
+					colorA = a.GetPixel(i, j);
+					colorB = b.GetPixel(i, j);
+					value += Math.Pow(Math.Abs(colorA.R - colorB.R), 2) 
+						+ Math.Pow(Math.Abs(colorA.G - colorB.G), 2) 
+						+ Math.Pow(Math.Abs(colorA.B - colorB.B), 2);
+				}
+			}
+			return Math.Round(value / (w * h * 3), 2);
+		}
+
+		public static double CountPSNR(int max, double mse) {
+			return Math.Round(20 * Math.Log10((double)max / Math.Sqrt(mse)), 2);
 		}
     }
 }

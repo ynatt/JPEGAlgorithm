@@ -35,25 +35,28 @@ namespace JPEGAlgorithm {
 			return sb.ToString();
 		}
 
-		public void Quantize(double q, float[,] quantizeMatrix) {
+		public void QuantizeY(float[,] quantizeMatrix) {
 			for (int i = 0; i < Chunk.BLOCKS_COUNT; i++) {
-				//MathUtils.RoundMatrix(Y[i]);
 				MathUtils.Quantize(Y[i], quantizeMatrix);
 				MathUtils.RoundMatrix(Y[i]);
 			}
-			//MathUtils.RoundMatrix(cb);
+		}
+
+		public void QuantizeCbCr(float[,] quantizeMatrix) {
 			MathUtils.Quantize(cb, quantizeMatrix);
 			MathUtils.RoundMatrix(cb);
-			//MathUtils.RoundMatrix(cr);
 			MathUtils.Quantize(cr, quantizeMatrix);
 			MathUtils.RoundMatrix(cr);
 		}
 
-		public void Dequantize(double q, float[,] quantizeMatrix) {
+		public void DequantizeY(float[,] quantizeMatrix) {
 			for (int i = 0; i < Chunk.BLOCKS_COUNT; i++) {
 				MathUtils.Dequantize(Y[i], quantizeMatrix);
 				MathUtils.RoundMatrix(Y[i]);
 			}
+		}
+
+		public void DequantizeCbCr(float[,] quantizeMatrix) {
 			MathUtils.Dequantize(cb, quantizeMatrix);
 			MathUtils.RoundMatrix(cb);
 			MathUtils.Dequantize(cr, quantizeMatrix);

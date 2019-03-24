@@ -47,7 +47,7 @@ namespace JPEGAlgorithm
 			var resBytes = new byte[resultBitmapData.Stride * height];
 			var pixelSize = Image.GetPixelFormatSize(image.PixelFormat) / 8;
 			for (int j = 0; j < height; j++) {
-				Array.Copy(bytes, j * sourceBitmapData.Stride + x * pixelSize, resBytes, j * resultBitmapData.Stride, width * 3);
+				Array.Copy(bytes, j * sourceBitmapData.Stride, resBytes, j * resultBitmapData.Stride, width * 3);
 			}
 			Marshal.Copy(resBytes, 0, resultBitmapData.Scan0, resBytes.Length);
 			result.UnlockBits(resultBitmapData);
