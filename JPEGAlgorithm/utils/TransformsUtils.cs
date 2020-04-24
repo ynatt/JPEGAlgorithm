@@ -195,5 +195,112 @@ namespace JPEGAlgorithm {
 			}
 			return result;
 		}
-    }
+
+		public static void HaarTransform(float[] vector, int size) {
+			float[] temp = new float[size];
+			int n = size / 2;
+			for (int i = 0; i < n; ++i) {
+				float a = vector[2 * i];
+				float b = vector[2 * i + 1];
+				float summ = a + b;
+				float diff = a - b;
+				temp[i] = summ / 2;
+				temp[n + i] = diff / 2;
+			}
+			for (int i = 0; i < size; ++i) {
+				vector[i] = temp[i];
+			}
+		}
+
+		public static void HaarTransform(float[,] matrix, int w, int h) {
+			var vector = new float[w];
+			for (var i = 0; i < h; i++) {
+				for (var j = 0; j < w; j++) {
+					vector[j] = matrix[i, j];
+				}
+				HaarTransform(vector, w);
+				for (var j = 0; j < w; j++) {
+					matrix[i, j] = vector[j];
+				}
+			}
+			vector = new float[h];
+			for (var i = 0; i < w; i++) {
+				for (var j = 0; j < h; j++) {
+					vector[j] = matrix[j, i];
+				}
+				HaarTransform(vector, h);
+				for (var j = 0; j < h; j++) {
+					matrix[j, i] = vector[j];
+				}
+			}
+		}
+
+		public static float[,] HaarTransform(ImageBlock imageBlock) {
+			float[,] matrix = MathUtils.ToFloatMatrix(imageBlock.Data);
+			int w = matrix.GetLength(0);
+			int h = matrix.GetLength(1);
+			while (w >= 2 && h >= 2) {
+				HaarTransform(matrix, w, h);
+				w /= 2;
+				h /= 2;
+			}
+			return matrix;
+		}
+
+		public static int[,] HaarReverseTransform(float[,] matrix) {
+			int w = matrix.GetLength(0);
+			int h = matrix.GetLength(1);
+			while (w >= 2 && h >= 2) {
+				w /= 2;
+				h /= 2;
+			}
+			w *= 2;
+			h *= 2;
+			while (w <= matrix.GetLength(0) && h <= matrix.GetLength(1)) {
+				HaarReverseTransform(matrix, w, h);
+				w *= 2;
+				h *= 2;
+			}
+			return MathUtils.RoundFloatMatrix(matrix);
+		}
+
+		public static void HaarReverseTransform(float[] vector, int size) {
+			float[] temp = new float[size];
+			int n = size / 2;
+			for (int i = 0; i < n; ++i) {
+				float a = vector[i];
+				float b = vector[i + n];
+				float summ = a + b;
+				float diff = a - b;
+				temp[2 * i] = summ;
+				temp[2 * i + 1] = diff;
+			}
+			for (int i = 0; i < size; ++i) {
+				vector[i] = temp[i];
+			}
+		}
+
+		public static void HaarReverseTransform(float[,] matrix, int w, int h) {
+			var vector = new float[h];
+			for (var i = 0; i < w; i++) {
+				for (var j = 0; j < h; j++) {
+					vector[j] = matrix[j, i];
+				}
+				HaarReverseTransform(vector, h);
+				for (var j = 0; j < h; j++) {
+					matrix[j, i] = vector[j];
+				}
+			}
+			vector = new float[w];
+			for (var i = 0; i < h; i++) {
+				for (var j = 0; j < w; j++) {
+					vector[j] = matrix[i, j];
+				}
+				HaarReverseTransform(vector, w);
+				for (var j = 0; j < w; j++) {
+					matrix[i, j] = vector[j];
+				}
+			}
+		}
+	}
 }

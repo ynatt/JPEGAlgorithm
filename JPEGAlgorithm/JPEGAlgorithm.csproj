@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{98FF2C07-0B3C-42FC-8A9C-04FC934A9BF3}</ProjectGuid>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Exe</OutputType>
     <RootNamespace>JPEGAlgorithm</RootNamespace>
     <AssemblyName>JPEGAlgorithm</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
@@ -32,6 +32,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -48,22 +51,35 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="HaarChunk.cs" />
+    <Compile Include="utils\ArrayUtils.cs" />
     <Compile Include="Averager.cs" />
     <Compile Include="BitStream.cs" />
     <Compile Include="Chunk.cs" />
+    <Compile Include="Complex.cs" />
     <Compile Include="DCTChunk.cs" />
+    <Compile Include="utils\ConstIntervalsUtils.cs" />
+    <Compile Include="vilenklin\ExpansionBase.cs" />
     <Compile Include="HaffmanCompress.cs" />
     <Compile Include="ImageBlock.cs" />
-    <Compile Include="ImageUtils.cs" />
+    <Compile Include="utils\ImageUtils.cs" />
     <Compile Include="JPEG.cs" />
-    <Compile Include="MathUtils.cs" />
-    <Compile Include="MatrixUtils.cs" />
+    <Compile Include="utils\MathUtils.cs" />
+    <Compile Include="utils\MatrixUtils.cs" />
     <Compile Include="Node.cs" />
     <Compile Include="NodeUtils.cs" />
     <Compile Include="NumberUtils.cs" />
     <Compile Include="RGBImage.cs" />
     <Compile Include="Timer.cs" />
-    <Compile Include="TransformsUtils.cs" />
+    <Compile Include="utils\TransformsUtils.cs" />
+    <Compile Include="vilenklin\ParyN.cs" />
+    <Compile Include="vilenklin\ParyX.cs" />
+    <Compile Include="vilenklin\ParyXBuilder.cs" />
+    <Compile Include="vilenklin\RademacherFunction.cs" />
+    <Compile Include="vilenklin\RademaxerMatrix.cs" />
+    <Compile Include="vilenklin\VilenkinChunk.cs" />
+    <Compile Include="vilenklin\VilenkinFunction.cs" />
+    <Compile Include="vilenklin\VilenkinTransform.cs" />
     <Compile Include="YCbCrImage.cs" />
     <Compile Include="YCbCrPixel.cs" />
     <Compile Include="MainForm.cs">
@@ -109,5 +125,6 @@
   <ItemGroup>
     <None Include="Resources\Fallout-3-Test-Pattern-52_www.FullHDWpp.com_.jpg" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

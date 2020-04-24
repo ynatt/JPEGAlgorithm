@@ -1,4 +1,5 @@
-﻿using System;
+﻿using JPEGAlgorithm.vilenklin;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -57,6 +58,22 @@ namespace JPEGAlgorithm {
 			}
 			cb = new ImageBlock(TransformsUtils.Reverse_DCT(dCTChunk.Cb));
 			cr = new ImageBlock(TransformsUtils.Reverse_DCT(dCTChunk.Cr));
+		}
+
+		public Chunk(VilenkinChunk vilenkinChunk, VilenkinTransform vilenkin) {
+			for (int i = 0; i < BLOCKS_COUNT; i++) {
+				y[i] = new ImageBlock(vilenkin.ReverseTransform(vilenkinChunk.Y[i]));
+			}
+			cb = new ImageBlock(vilenkin.ReverseTransform(vilenkinChunk.Cb));
+			cr = new ImageBlock(vilenkin.ReverseTransform(vilenkinChunk.Cr));
+		}
+
+		public Chunk(HaarChunk haarChunk) {
+			for (int i = 0; i < BLOCKS_COUNT; i++) {
+				y[i] = new ImageBlock(TransformsUtils.HaarReverseTransform(haarChunk.Y[i]));
+			}
+			cb = new ImageBlock(TransformsUtils.HaarReverseTransform(haarChunk.Cb));
+			cr = new ImageBlock(TransformsUtils.HaarReverseTransform(haarChunk.Cr));
 		}
 
 		public void Unshift() {

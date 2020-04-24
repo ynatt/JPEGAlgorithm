@@ -29,7 +29,31 @@ namespace JPEGAlgorithm {
 			return result;
 		}
 
-        public static void Quantize(float[,] matrix, float[,] qMatrix) {
+		public static float[,] ToFloatMatrix(int[,] matrix) {
+			var w = matrix.GetLength(0);
+			var h = matrix.GetLength(1);
+			var result = new float[w, h];
+			for (var i = 0; i < w; i++) {
+				for (var j = 0; j < h; j++) {
+					result[i, j] = (float) matrix[i, j];
+				}
+			}
+			return result;
+		}
+
+		public static Complex[,] RoundComplexMatrix(Complex[,] matrix) {
+			var w = matrix.GetLength(0);
+			var h = matrix.GetLength(1);
+			var result = new Complex[w, h];
+			for (var i = 0; i < w; i++) {
+				for (var j = 0; j < h; j++) {
+					result[i, j] =  new Complex(Math.Round(matrix[i, j].GetRe()), matrix[i, j].GetIm());
+				}
+			}
+			return result;
+		}
+
+		public static void Quantize(float[,] matrix, float[,] qMatrix) {
             var n = matrix.GetLength(0);
             for (var i = 0; i < n; i++) {
                 for (var j = 0; j < n; j++) {

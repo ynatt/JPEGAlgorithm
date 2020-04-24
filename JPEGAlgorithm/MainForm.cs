@@ -1,4 +1,5 @@
-﻿using System;
+﻿using JPEGAlgorithm.vilenklin;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -87,6 +88,128 @@ namespace JPEGAlgorithm
 			var mse = MathUtils.CountMSE((Bitmap)a, (Bitmap)b);
 			mseValueLabel.Text = "" + mse;
 			psnrValueLabel.Text = "" + MathUtils.CountPSNR(255, mse) + " dB";
+		}
+
+		private async void button1_Click(object sender, EventArgs e) {
+			if (compressInProcess) {
+				return;
+			}
+			compressInProcess = true;
+			compressTimeValue.Text = "Calculating...";
+			resultPictureBox.Image = await Task.Factory.StartNew<Image>(() => BeginVilenkinCompress(),
+				TaskCreationOptions.LongRunning);
+			compressTimeValue.Text = "Calculated";
+			CountImageError(sourceImageBox.Image, resultPictureBox.Image, mseValueLabel, psnrValueLabel);
+			compressInProcess = false;
+		}
+
+		private List<int> p = new List<int>() { 4, 2, 4, 4, 4, 3, 3 };
+
+		private VilenkinTransform vilenkin;
+
+		private static string MAIN = "Main";
+		private static string PREPARATION = "Preparation";
+		private static string TRANSFORM = "Vilenkin transformation";
+		private static string REVERSE_TRANSFORM = "Vilenkin reverse transformation";
+
+		private Image BeginVilenkinCompress() {
+			Timer timer = Timer.GetInstance();
+			timer.Clear();
+			if (vilenkin == null) {
+				timer.Start(MAIN, PREPARATION);
+				vilenkin = new VilenkinTransform(p, JPEG.BLOCK_SIZE);
+				timer.End(MAIN, PREPARATION);
+			}
+			var originalWidth = sourceImageBox.Image.Width;
+			var originalHeight = sourceImageBox.Image.Height;
+			var rgbImage = new RGBImage(sourceImageBox.Image);
+			var fittedToChunksImage = ImageUtils.FitToBlockSize(rgbImage, JPEG.CHUNK_SIZE);
+			var chunks = fittedToChunksImage.ToBlockArray(JPEG.CHUNK_SIZE, out int widthBlocks, out int heightBlocks);
+			var vilenkinChunks = new VilenkinChunk[chunks.Length];
+			var parallelOptions = new ParallelOptions() { MaxDegreeOfParallelism = 4 };
+			timer.Start(MAIN, TRANSFORM);
+			var flag = Parallel.ForEach(chunks, parallelOptions, (elem, loopState, elementIndex) => {
+				var vilenkinChunk = new VilenkinChunk(vilenkin, new Chunk(chunks[elementIndex]));
+				vilenkinChunk.ZeroCoeffs(zeroPercent);
+				vilenkinChunks[elementIndex] = vilenkinChunk;
+			});
+			while (!flag.IsCompleted) ;
+			timer.End(MAIN, TRANSFORM);
+			var listOfDecompressedImages = new YCbCrImage[vilenkinChunks.Length];
+			var listOfDecompressedChunks = new Chunk[vilenkinChunks.Length];
+			var matrix = new YCbCrImage[widthBlocks, heightBlocks];
+			timer.Start(MAIN, REVERSE_TRANSFORM);
+			flag = Parallel.ForEach(vilenkinChunks, parallelOptions, (elem, loopState, i) => {
+				listOfDecompressedChunks[i] = new Chunk(vilenkinChunks[i], vilenkin);
+				listOfDecompressedImages[i] = YCbCrImage.FromChunk(listOfDecompressedChunks[i]);
+				var j = i / widthBlocks;
+				matrix[i - j * widthBlocks, j] = listOfDecompressedImages[i];
+			});
+			while (!flag.IsCompleted) ;
+			timer.End(MAIN, REVERSE_TRANSFORM);
+			timer.DisplayIntervals();
+			var decompressedImage = YCbCrImage.FromMatrix(matrix).ToRGBImage(originalWidth, originalHeight);
+			return decompressedImage.ToImage();
+		}
+
+		private int zeroPercent;
+
+		private void zeroPercentBox_TextChanged(object sender, EventArgs e) {
+			if (int.TryParse(zeroPercentBox.Text, out zeroPercent)) {
+				if (zeroPercent < 0 && zeroPercent > 100) {
+					zeroPercentBox.Text = "0-100";
+				}
+			} else {
+				zeroPercentBox.Text = "";
+			}
+		}
+
+		private Image BeginHaarCompress() {
+			Timer timer = Timer.GetInstance();
+			timer.Clear();
+			var originalWidth = sourceImageBox.Image.Width;
+			var originalHeight = sourceImageBox.Image.Height;
+			var rgbImage = new RGBImage(sourceImageBox.Image);
+			var fittedToChunksImage = ImageUtils.FitToBlockSize(rgbImage, JPEG.CHUNK_SIZE);
+			var chunks = fittedToChunksImage.ToBlockArray(JPEG.CHUNK_SIZE, out int widthBlocks, out int heightBlocks);
+			var haarChunks = new HaarChunk[chunks.Length];
+			var parallelOptions = new ParallelOptions() { MaxDegreeOfParallelism = 4 };
+			timer.Start(MAIN, TRANSFORM);
+			var flag = Parallel.ForEach(chunks, parallelOptions, (elem, loopState, elementIndex) => {
+				var haarChunk = new HaarChunk(new Chunk(chunks[elementIndex]));
+				haarChunk.ZeroCoeffs(zeroPercent);
+				haarChunks[elementIndex] = haarChunk;
+			});
+			while (!flag.IsCompleted) ;
+			timer.End(MAIN, TRANSFORM);
+			var listOfDecompressedImages = new YCbCrImage[haarChunks.Length];
+			var listOfDecompressedChunks = new Chunk[haarChunks.Length];
+			var matrix = new YCbCrImage[widthBlocks, heightBlocks];
+			timer.Start(MAIN, REVERSE_TRANSFORM);
+			flag = Parallel.ForEach(haarChunks, parallelOptions, (elem, loopState, i) => {
+				listOfDecompressedChunks[i] = new Chunk(haarChunks[i]);
+				listOfDecompressedImages[i] = YCbCrImage.FromChunk(listOfDecompressedChunks[i]);
+				var j = i / widthBlocks;
+				matrix[i - j * widthBlocks, j] = listOfDecompressedImages[i];
+			});
+			while (!flag.IsCompleted) ;
+			timer.End(MAIN, REVERSE_TRANSFORM);
+			timer.DisplayIntervals();
+			var decompressedImage = YCbCrImage.FromMatrix(matrix).ToRGBImage(originalWidth, originalHeight);
+			return decompressedImage.ToImage();
+		}
+
+		private async void button2_Click(object sender, EventArgs e) {
+			if (compressInProcess) {
+				return;
+			}
+			compressInProcess = true;
+			compressTimeValue.Text = "Calculating...";
+			resultPictureBox.Image = await Task.Factory.StartNew<Image>(() => BeginHaarCompress(),
+				TaskCreationOptions.LongRunning);
+			compressTimeValue.Text = "Calculated";
+			CountImageError(sourceImageBox.Image, resultPictureBox.Image, mseValueLabel, psnrValueLabel);
+			compressInProcess = false;
 		}
 	}
 }

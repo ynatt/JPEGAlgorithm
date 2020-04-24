@@ -78,6 +78,10 @@ namespace JPEGAlgorithm
 			this.mseValueLabel = new System.Windows.Forms.Label();
 			this.mseLabel = new System.Windows.Forms.Label();
 			this.enableQuantForYToolTip = new System.Windows.Forms.ToolTip(this.components);
+			this.button1 = new System.Windows.Forms.Button();
+			this.label12 = new System.Windows.Forms.Label();
+			this.zeroPercentBox = new System.Windows.Forms.TextBox();
+			this.button2 = new System.Windows.Forms.Button();
 			((System.ComponentModel.ISupportInitialize)(this.resultPictureBox)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.sourceImageBox)).BeginInit();
 			this.quantCoeffsGroupBox.SuspendLayout();
@@ -585,12 +589,54 @@ namespace JPEGAlgorithm
 			this.enableQuantForYToolTip.ToolTipIcon = System.Windows.Forms.ToolTipIcon.Info;
 			this.enableQuantForYToolTip.ToolTipTitle = "Info";
 			// 
+			// button1
+			// 
+			this.button1.Location = new System.Drawing.Point(646, 40);
+			this.button1.Name = "button1";
+			this.button1.Size = new System.Drawing.Size(102, 28);
+			this.button1.TabIndex = 25;
+			this.button1.Text = "Vilenkin Compress";
+			this.button1.UseVisualStyleBackColor = true;
+			this.button1.Click += new System.EventHandler(this.button1_Click);
+			// 
+			// label12
+			// 
+			this.label12.AutoSize = true;
+			this.label12.Location = new System.Drawing.Point(646, 13);
+			this.label12.Name = "label12";
+			this.label12.Size = new System.Drawing.Size(68, 13);
+			this.label12.TabIndex = 26;
+			this.label12.Text = "Zero percent";
+			// 
+			// zeroPercentBox
+			// 
+			this.zeroPercentBox.Location = new System.Drawing.Point(714, 10);
+			this.zeroPercentBox.Name = "zeroPercentBox";
+			this.zeroPercentBox.Size = new System.Drawing.Size(34, 20);
+			this.zeroPercentBox.TabIndex = 27;
+			this.zeroPercentBox.Text = "0-100";
+			this.zeroPercentBox.TextChanged += new System.EventHandler(this.zeroPercentBox_TextChanged);
+			// 
+			// button2
+			// 
+			this.button2.Location = new System.Drawing.Point(754, 40);
+			this.button2.Name = "button2";
+			this.button2.Size = new System.Drawing.Size(102, 28);
+			this.button2.TabIndex = 28;
+			this.button2.Text = "Haar Compress";
+			this.button2.UseVisualStyleBackColor = true;
+			this.button2.Click += new System.EventHandler(this.button2_Click);
+			// 
 			// MainForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.BackColor = System.Drawing.SystemColors.ControlDarkDark;
 			this.ClientSize = new System.Drawing.Size(1254, 506);
+			this.Controls.Add(this.button2);
+			this.Controls.Add(this.zeroPercentBox);
+			this.Controls.Add(this.label12);
+			this.Controls.Add(this.button1);
 			this.Controls.Add(this.errorInfoGroupBox);
 			this.Controls.Add(this.compareGroupBox);
 			this.Controls.Add(this.infoGroupBox);
@@ -601,6 +647,7 @@ namespace JPEGAlgorithm
 			this.Controls.Add(this.openPictureButton);
 			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
 			this.Name = "MainForm";
+			this.RightToLeft = System.Windows.Forms.RightToLeft.No;
 			this.Text = "JPEGAlgorithm";
 			this.Load += new System.EventHandler(this.MainForm_Load);
 			((System.ComponentModel.ISupportInitialize)(this.resultPictureBox)).EndInit();
@@ -618,6 +665,7 @@ namespace JPEGAlgorithm
 			this.errorInfoGroupBox.ResumeLayout(false);
 			this.errorInfoGroupBox.PerformLayout();
 			this.ResumeLayout(false);
+			this.PerformLayout();
 
         }
 
@@ -669,6 +717,10 @@ namespace JPEGAlgorithm
 		private System.Windows.Forms.Label label11;
 		private System.Windows.Forms.Label cbcrLabel;
 		private System.Windows.Forms.ToolTip enableQuantForYToolTip;
+		private System.Windows.Forms.Button button1;
+		private System.Windows.Forms.Label label12;
+		private System.Windows.Forms.TextBox zeroPercentBox;
+		private System.Windows.Forms.Button button2;
 	}
 }
 

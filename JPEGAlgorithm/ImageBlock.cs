@@ -18,6 +18,18 @@ namespace JPEGAlgorithm {
             this.data = data;
         }
 
+		public ImageBlock(Complex[,] data) {
+			Width = data.GetLength(0);
+			Height = data.GetLength(1);
+			int[,] readData = new int[width, height];
+			for (var i = 0; i < width; i++) {
+				for (var j = 0; j < height; j++) {
+					readData[i, j] =(int) data[i, j].GetRe();
+				}
+			}
+			this.data = readData;
+		}
+
 		public ImageBlock(ImageBlock[,] imageBlocksMatrix) {
 			Height = 16;
 			Width = 16;
