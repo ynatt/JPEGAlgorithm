@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -110,16 +112,26 @@ namespace JPEGAlgorithm {
 		public static double CountMSE(Bitmap a, Bitmap b) {
 			var w = a.Width;
 			var h = a.Height;
+			var rect = new Rectangle(0, 0, w, h);
+			var aBitmapData = a.LockBits(rect, ImageLockMode.ReadOnly, a.PixelFormat);
+			var aBytes = new byte[aBitmapData.Stride * h];
+			Marshal.Copy(aBitmapData.Scan0, aBytes, 0, aBytes.Length);
+			a.UnlockBits(aBitmapData);
+			var bBitmapData = b.LockBits(rect, ImageLockMode.ReadOnly, a.PixelFormat);
+			var bBytes = new byte[aBitmapData.Stride * h];
+			Marshal.Copy(bBitmapData.Scan0, bBytes, 0, bBytes.Length);
+			b.UnlockBits(bBitmapData);
+			var pixelSize = Image.GetPixelFormatSize(a.PixelFormat) / 8;
+			var pointer = 0;
 			double value = 0;
-			Color colorA;
-			Color colorB;
-			for (int i = 0; i < w; i++) {
-				for (int j = 0; j < h; j++) {
-					colorA = a.GetPixel(i, j);
-					colorB = b.GetPixel(i, j);
-					value += Math.Pow(Math.Abs(colorA.R - colorB.R), 2) 
-						+ Math.Pow(Math.Abs(colorA.G - colorB.G), 2) 
-						+ Math.Pow(Math.Abs(colorA.B - colorB.B), 2);
+			var pixelOffset = pixelSize - 3;
+			for (int i = 0; i < h; i++) {
+				pointer = aBitmapData.Stride * i;
+				for (int k = 0; k < w; k++) {
+					value+= Math.Pow(Math.Abs(aBytes[pointer] - bBytes[pointer++]), 2)
+						+ Math.Pow(Math.Abs(aBytes[pointer] - bBytes[pointer++]), 2)
+						+ Math.Pow(Math.Abs(aBytes[pointer] - bBytes[pointer]), 2);
+					pointer += pixelOffset; 
 				}
 			}
 			return Math.Round(value / (w * h * 3), 2);
