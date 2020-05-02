@@ -77,7 +77,7 @@ namespace JPEGAlgorithm {
 			var matrix = new float[n, n];
             for (var i = 0; i < n; i++) {
                 for (var j = 0; j < n; j++) {
-                    matrix[i, j] = 3 * dcq + (i + j) * acq;
+                    matrix[i, j] = dcq + (i + j) * acq;
                 }
             }
 			return matrix;
@@ -109,7 +109,7 @@ namespace JPEGAlgorithm {
 			return diffs;
 		}
 
-		public static double CountMSE(Bitmap a, Bitmap b) {
+		public static void CountMSE(Bitmap a, Bitmap b, out double rMSE, out double gMSE, out double bMSE) {
 			var w = a.Width;
 			var h = a.Height;
 			var rect = new Rectangle(0, 0, w, h);
@@ -123,18 +123,22 @@ namespace JPEGAlgorithm {
 			b.UnlockBits(bBitmapData);
 			var pixelSize = Image.GetPixelFormatSize(a.PixelFormat) / 8;
 			var pointer = 0;
-			double value = 0;
+			double valueR = 0;
+			double valueG = 0;
+			double valueB = 0;
 			var pixelOffset = pixelSize - 3;
 			for (int i = 0; i < h; i++) {
 				pointer = aBitmapData.Stride * i;
 				for (int k = 0; k < w; k++) {
-					value+= Math.Pow(Math.Abs(aBytes[pointer] - bBytes[pointer++]), 2)
-						+ Math.Pow(Math.Abs(aBytes[pointer] - bBytes[pointer++]), 2)
-						+ Math.Pow(Math.Abs(aBytes[pointer] - bBytes[pointer]), 2);
+					valueR += Math.Pow(Math.Abs(aBytes[pointer] - bBytes[pointer++]), 2);
+					valueG += Math.Pow(Math.Abs(aBytes[pointer] - bBytes[pointer++]), 2);
+					valueB += Math.Pow(Math.Abs(aBytes[pointer] - bBytes[pointer]), 2);
 					pointer += pixelOffset; 
 				}
 			}
-			return Math.Round(value / (w * h * 3), 2);
+			rMSE = Math.Round(valueR / (w * h), 2);
+			gMSE = Math.Round(valueG / (w * h), 2);
+			bMSE = Math.Round(valueB / (w * h), 2);
 		}
 
 		public static double CountPSNR(int max, double mse) {

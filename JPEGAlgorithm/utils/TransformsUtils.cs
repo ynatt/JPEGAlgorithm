@@ -34,16 +34,20 @@ namespace JPEGAlgorithm {
             }
             return result;
         }
-		
+
+		private static readonly object syncLock = new object();
+
 		public static float[,] CountCosMatrixFor(int n) {
-			if (!cosMatrixes.ContainsKey(n)) {
-				var res = new float[n, n];
-				for (int i = 0; i < n; i++) {
-					for (int j = 0; j < n; j++) {
-						res[i, j] = Cos(i, j, n);
+			lock (syncLock) {
+				if (!cosMatrixes.ContainsKey(n)) {
+					var res = new float[n, n];
+					for (int i = 0; i < n; i++) {
+						for (int j = 0; j < n; j++) {
+							res[i, j] = Cos(i, j, n);
+						}
 					}
+					cosMatrixes.Add(n, res);
 				}
-				cosMatrixes.Add(n, res);
 			}
 			return cosMatrixes[n];
 		}
@@ -179,7 +183,11 @@ namespace JPEGAlgorithm {
 				for (var j = 0; j < N; j++) {
 					vector[j] = matrix[i , j];
 				}
-				vector = DCT_d1_Optimized(vector);
+				if (vector.Length == 8) {
+					vector = DCT_d1_Optimized(vector);
+				} else {
+					vector = DCT_d1_NotOptimized(vector);
+				}
 				for (var j = 0; j < N; j++) {
 					result[i, j] = vector[j];
 				}
@@ -188,7 +196,11 @@ namespace JPEGAlgorithm {
 				for (var j = 0; j < N; j++) {
 					vector[j] = result[j, i];
 				}
-				vector = DCT_d1_Optimized(vector);
+				if (vector.Length == 8) {
+					vector = DCT_d1_Optimized(vector);
+				} else {
+					vector = DCT_d1_NotOptimized(vector);
+				}
 				for (var j = 0; j < N; j++) {
 					result[j, i] = vector[j];
 				}

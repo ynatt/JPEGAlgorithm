@@ -24,24 +24,27 @@ namespace JPEGAlgorithm {
         }
 
         public ImageBlock Average(ImageBlock[,] imageBlocksMatrix) {
-            if (imageBlocksMatrix.GetLength(0) != imageBlocksMatrix.GetLength(1) && imageBlocksMatrix.GetLength(1) != 2) {
+            /*if (imageBlocksMatrix.GetLength(0) != imageBlocksMatrix.GetLength(1) && imageBlocksMatrix.GetLength(1) != 2) {
                 throw new ArgumentException("Matrix should be square and dimention = 2");
-            }
-            int[,] data;
-            int[,] resData = new int[8, 8];
+            }*/
+			int w = imageBlocksMatrix[0, 0].Width;
+			int h = imageBlocksMatrix[0, 0].Height;
+			int[,] data = MatrixUtils<int>.Assemble(imageBlocksMatrix);
+            int[,] resData = new int[w, h];
             float average;
-            for (var k = 0; k < 2; k++) {
-                for (var t = 0; t < 2; t++) {
-                    data = imageBlocksMatrix[k, t].Data;
-                    for (int i = 4 * k, u = 0; i < 4 * (1 + k); i++, u+=2) {
-                        for (int j = 4 * t, v = 0; j < 4 * (1 + t); j++, v+=2) {
-                            average = ((float)(data[u, v] + data[u + 1, v] + data[u, v + 1] + data[u + 1, v + 1])) / 4;
-                            resData[i, j] = (int)average;
-                        }
-                    }
-                }
-            }
+			int k = 0;
+			int t = 0;
+			for (int i = 0; i < w; i++) {
+				for (int j = 0; j < h; j++) {
+					k = i * 2;
+					t = j * 2;
+					average = ((float)(data[k, t] + data[k, t + 1] + data[k + 1, t] + data[k + 1, t + 1])) / 4;
+					resData[i, j] = (int) average;
+				}
+			}
             return new ImageBlock(resData);
         }
+
+
     }
 }

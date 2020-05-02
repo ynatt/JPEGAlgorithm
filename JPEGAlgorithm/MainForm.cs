@@ -52,6 +52,8 @@ namespace JPEGAlgorithm
 			resultPictureBox.Image = await Task.Factory.StartNew<Image>(() => BeginCompress(),
 				TaskCreationOptions.LongRunning);
 			compressTimeValue.Text = Timer.GetInstance().GetTimeOf(JPEG.MAIN_ID, JPEG.FULL_COMPRESS);
+			label_zeroedCoeffsPercent.Text = "" + Math.Round((double)zeroCoeffsCount * 100d / (double)coeffsCount, 0);
+			blockSize_label.Text = "" + blockSize;
 			CountImageError(sourceImageBox.Image, resultPictureBox.Image, mseValueLabel, psnrValueLabel);
 			compressInProcess = false;
 		}
@@ -70,7 +72,10 @@ namespace JPEGAlgorithm
 			var quantCoeffYDC = float.Parse(this.quantCoeffYDC.Text);
 			var quantCoeffYAC = float.Parse(this.quantCoeffYAC.Text);
 			JPEG jpeg = new JPEG(sourceImageBox.Image);
-			return jpeg.Compress(quantCoeffCbCrDC, quantCoeffCbCrAC, enableQuantOfYCheckBox.Checked, quantCoeffYDC, quantCoeffYAC);
+			blockSize = (int)Math.Pow(int.Parse(p_textBox.Text), int.Parse(N_textBox.Text) + 1);
+			Image result = jpeg.Compress(quantCoeffCbCrDC, quantCoeffCbCrAC, enableQuantOfYCheckBox.Checked,
+				quantCoeffYDC, quantCoeffYAC, blockSize, out coeffsCount, out zeroCoeffsCount, zeroPercentY, zeroPercentCb, zeroPercentCr);
+			return result;
 		}
 
 		private void compareButton_Click(object sender, EventArgs e) {
@@ -85,9 +90,9 @@ namespace JPEGAlgorithm
 		}
 
 		private void CountImageError(Image a, Image b, Label mseValueLabel, Label psnrValueLabel) {
-			var mse = MathUtils.CountMSE((Bitmap)a, (Bitmap)b);
-			mseValueLabel.Text = "" + mse;
-			psnrValueLabel.Text = "" + MathUtils.CountPSNR(255, mse) + " dB";
+			MathUtils.CountMSE((Bitmap)a, (Bitmap)b, out double rMSE, out double gMSE, out double bMSE);
+			mseValueLabel.Text = "(" + rMSE + ", " + gMSE + ", " + bMSE + ")";
+			psnrValueLabel.Text = "(" + MathUtils.CountPSNR(255, rMSE) + ", " + MathUtils.CountPSNR(255, gMSE) + ", " + MathUtils.CountPSNR(255, bMSE) + ")";
 		}
 
 		private async void button1_Click(object sender, EventArgs e) {
@@ -95,15 +100,19 @@ namespace JPEGAlgorithm
 				return;
 			}
 			compressInProcess = true;
+			coeffsCount = 0;
+			zeroCoeffsCount = 0;
 			compressTimeValue.Text = "Calculating...";
 			resultPictureBox.Image = await Task.Factory.StartNew<Image>(() => BeginVilenkinCompress(),
 				TaskCreationOptions.LongRunning);
 			compressTimeValue.Text = "Calculated";
+			label_zeroedCoeffsPercent.Text = "" + Math.Round((double)zeroCoeffsCount * 100d / (double)coeffsCount, 0);
+			blockSize_label.Text = "" + blockSize;
 			CountImageError(sourceImageBox.Image, resultPictureBox.Image, mseValueLabel, psnrValueLabel);
 			compressInProcess = false;
 		}
 
-		private List<int> p = new List<int>() { 4, 2, 4, 4, 4, 3, 3 };
+		private List<int> p;
 
 		private VilenkinTransform vilenkin;
 
@@ -112,29 +121,40 @@ namespace JPEGAlgorithm
 		private static string TRANSFORM = "Vilenkin transformation";
 		private static string REVERSE_TRANSFORM = "Vilenkin reverse transformation";
 
+		public int blockSize;
+		public int chunkSize;
+
 		private Image BeginVilenkinCompress() {
+			p = new List<int>();
+			ArrayUtils.Fill(p, int.Parse(p_textBox.Text), 10);
 			Timer timer = Timer.GetInstance();
 			timer.Clear();
 			if (vilenkin == null) {
 				timer.Start(MAIN, PREPARATION);
-				vilenkin = new VilenkinTransform(p, JPEG.BLOCK_SIZE);
+				vilenkin = new VilenkinTransform(p, int.Parse(N_textBox.Text));
 				timer.End(MAIN, PREPARATION);
 			}
+			blockSize = vilenkin.GetBlockSize();
+			chunkSize = blockSize * 2;
 			var originalWidth = sourceImageBox.Image.Width;
 			var originalHeight = sourceImageBox.Image.Height;
 			var rgbImage = new RGBImage(sourceImageBox.Image);
-			var fittedToChunksImage = ImageUtils.FitToBlockSize(rgbImage, JPEG.CHUNK_SIZE);
-			var chunks = fittedToChunksImage.ToBlockArray(JPEG.CHUNK_SIZE, out int widthBlocks, out int heightBlocks);
+			var fittedToChunksImage = ImageUtils.FitToBlockSize(rgbImage, chunkSize);
+			var chunks = fittedToChunksImage.ToBlockArray(chunkSize, out int widthBlocks, out int heightBlocks);
 			var vilenkinChunks = new VilenkinChunk[chunks.Length];
 			var parallelOptions = new ParallelOptions() { MaxDegreeOfParallelism = 4 };
 			timer.Start(MAIN, TRANSFORM);
 			var flag = Parallel.ForEach(chunks, parallelOptions, (elem, loopState, elementIndex) => {
-				var vilenkinChunk = new VilenkinChunk(vilenkin, new Chunk(chunks[elementIndex]));
-				vilenkinChunk.ZeroCoeffs(zeroPercent);
+				var vilenkinChunk = new VilenkinChunk(vilenkin, new Chunk(chunks[elementIndex], blockSize));
+				vilenkinChunk.ZeroCoeffs(zeroPercentY, zeroPercentCb, zeroPercentCr);
 				vilenkinChunks[elementIndex] = vilenkinChunk;
 			});
 			while (!flag.IsCompleted) ;
 			timer.End(MAIN, TRANSFORM);
+			foreach (VilenkinChunk chunk in vilenkinChunks) {
+				coeffsCount += chunk.CoeffsCount();
+				zeroCoeffsCount += chunk.ZeroCoeffsCount();
+			}
 			var listOfDecompressedImages = new YCbCrImage[vilenkinChunks.Length];
 			var listOfDecompressedChunks = new Chunk[vilenkinChunks.Length];
 			var matrix = new YCbCrImage[widthBlocks, heightBlocks];
@@ -152,36 +172,37 @@ namespace JPEGAlgorithm
 			return decompressedImage.ToImage();
 		}
 
-		private int zeroPercent;
+		private int zeroPercentY;
+		private int zeroPercentCb;
+		private int zeroPercentCr;
 
-		private void zeroPercentBox_TextChanged(object sender, EventArgs e) {
-			if (int.TryParse(zeroPercentBox.Text, out zeroPercent)) {
-				if (zeroPercent < 0 && zeroPercent > 100) {
-					zeroPercentBox.Text = "0-100";
-				}
-			} else {
-				zeroPercentBox.Text = "";
-			}
-		}
+		int coeffsCount = 0;
+		int zeroCoeffsCount = 0;
 
 		private Image BeginHaarCompress() {
 			Timer timer = Timer.GetInstance();
 			timer.Clear();
+			blockSize = (int) Math.Pow(int.Parse(p_textBox.Text), int.Parse(N_textBox.Text) + 1);
+			var chunkSize = blockSize * 2;
 			var originalWidth = sourceImageBox.Image.Width;
 			var originalHeight = sourceImageBox.Image.Height;
 			var rgbImage = new RGBImage(sourceImageBox.Image);
-			var fittedToChunksImage = ImageUtils.FitToBlockSize(rgbImage, JPEG.CHUNK_SIZE);
-			var chunks = fittedToChunksImage.ToBlockArray(JPEG.CHUNK_SIZE, out int widthBlocks, out int heightBlocks);
+			var fittedToChunksImage = ImageUtils.FitToBlockSize(rgbImage, chunkSize);
+			var chunks = fittedToChunksImage.ToBlockArray(chunkSize, out int widthBlocks, out int heightBlocks);
 			var haarChunks = new HaarChunk[chunks.Length];
 			var parallelOptions = new ParallelOptions() { MaxDegreeOfParallelism = 4 };
 			timer.Start(MAIN, TRANSFORM);
 			var flag = Parallel.ForEach(chunks, parallelOptions, (elem, loopState, elementIndex) => {
-				var haarChunk = new HaarChunk(new Chunk(chunks[elementIndex]));
-				haarChunk.ZeroCoeffs(zeroPercent);
+				var haarChunk = new HaarChunk(new Chunk(chunks[elementIndex], blockSize));
+				haarChunk.ZeroCoeffs(zeroPercentY, zeroPercentCb, zeroPercentCr);
 				haarChunks[elementIndex] = haarChunk;
 			});
 			while (!flag.IsCompleted) ;
 			timer.End(MAIN, TRANSFORM);
+			foreach (HaarChunk chunk in haarChunks) {
+				coeffsCount += chunk.CoeffsCount();
+				zeroCoeffsCount += chunk.ZeroCoeffsCount();
+			}
 			var listOfDecompressedImages = new YCbCrImage[haarChunks.Length];
 			var listOfDecompressedChunks = new Chunk[haarChunks.Length];
 			var matrix = new YCbCrImage[widthBlocks, heightBlocks];
@@ -203,13 +224,57 @@ namespace JPEGAlgorithm
 			if (compressInProcess) {
 				return;
 			}
+			coeffsCount = 0;
+			zeroCoeffsCount = 0;
 			compressInProcess = true;
 			compressTimeValue.Text = "Calculating...";
 			resultPictureBox.Image = await Task.Factory.StartNew<Image>(() => BeginHaarCompress(),
 				TaskCreationOptions.LongRunning);
 			compressTimeValue.Text = "Calculated";
+			label_zeroedCoeffsPercent.Text = "" + Math.Round((double)zeroCoeffsCount * 100d / (double)coeffsCount, 0);
+			blockSize_label.Text = "" + blockSize;
 			CountImageError(sourceImageBox.Image, resultPictureBox.Image, mseValueLabel, psnrValueLabel);
 			compressInProcess = false;
+		}
+
+		private void p_textBox_TextChanged(object sender, EventArgs e) {
+			p = new List<int>();
+			ArrayUtils.Fill(p, int.Parse(p_textBox.Text), 10);
+			vilenkin = null;
+		}
+
+		private void N_textBox_TextChanged(object sender, EventArgs e) {
+			vilenkin = null;
+		}
+
+		private void zeroPercentYBox_TextChanged(object sender, EventArgs e) {
+			if (int.TryParse(zeroPercentYBox.Text, out zeroPercentY)) {
+				if (zeroPercentY < 0 && zeroPercentY > 100) {
+					zeroPercentYBox.Text = "0";
+				}
+			} else {
+				zeroPercentYBox.Text = "";
+			}
+		}
+
+		private void zeroPercentCb_textBox_TextChanged(object sender, EventArgs e) {
+			if (int.TryParse(zeroPercentCb_textBox.Text, out zeroPercentCb)) {
+				if (zeroPercentCb < 0 && zeroPercentCb > 100) {
+					zeroPercentCb_textBox.Text = "0";
+				}
+			} else {
+				zeroPercentCb_textBox.Text = "";
+			}
+		}
+
+		private void zeroPercentCr_textBox_TextChanged(object sender, EventArgs e) {
+			if (int.TryParse(zeroPercentCr_textBox.Text, out zeroPercentCr)) {
+				if (zeroPercentCr < 0 && zeroPercentCr > 100) {
+					zeroPercentCr_textBox.Text = "0";
+				}
+			} else {
+				zeroPercentCr_textBox.Text = "";
+			}
 		}
 	}
 }

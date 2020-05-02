@@ -110,9 +110,9 @@ namespace JPEGAlgorithm
 		}
 
 		public static YCbCrPixel[,] Merge(ImageBlock y, ImageBlock cb, ImageBlock cr){
-			var pixels = new YCbCrPixel[16, 16];
-			for (var i = 0; i < 16; i++) {
-				for (var j = 0; j < 16; j++) {
+			var pixels = new YCbCrPixel[y.Width, y.Height];
+			for (var i = 0; i < y.Width; i++) {
+				for (var j = 0; j < y.Height; j++) {
 					pixels[i, j] = new YCbCrPixel(y.Data[i, j], cb.Data[i, j], cr.Data[i, j]);
 				}
 			}

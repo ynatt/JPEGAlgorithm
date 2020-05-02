@@ -39,12 +39,14 @@ namespace JPEGAlgorithm
 		public static YCbCrImage FromMatrix(YCbCrImage[,] matrix) {
 			var w = matrix.GetLength(0);
 			var h = matrix.GetLength(1);
-			var pixels = new YCbCrPixel[w * 16, h * 16];
+			var blockSizeW = matrix[0, 0].Width;
+			var blockSizeH = matrix[0, 0].Height;
+			var pixels = new YCbCrPixel[w * blockSizeW, h * blockSizeH];
 			for (int i = 0; i < w; i++) {
 				for (int j = 0; j < h; j++) {
-					for (int k = 0; k < 16; k++) {
-						for (int t = 0; t < 16; t++) {
-							pixels[i * 16 + k, j * 16 + t] = matrix[i, j].Pixels[k, t];
+					for (int k = 0; k < blockSizeW; k++) {
+						for (int t = 0; t < blockSizeH; t++) {
+							pixels[i * blockSizeW + k, j * blockSizeH + t] = matrix[i, j].Pixels[k, t];
 						}
 					}
 				}

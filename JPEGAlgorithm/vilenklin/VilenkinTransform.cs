@@ -29,11 +29,41 @@ namespace JPEGAlgorithm {
 
 		private Dictionary<int, VilenkinFunction> vilenkinFunctions;
 
-		public VilenkinTransform(List<int> p, int blockSize) {
+		public ExpansionBase GetExpansionBase() {
+			return expansionBase;
+		}
+
+		public int GetBlockSize() {
+			return blockSize;
+		}
+
+		/*public VilenkinTransform(List<int> p, int blockSize) {
 			this.expansionBase = new ExpansionBase(p);
 			this.blockSize = blockSize;
 			this.K = CountK();
 			xs = ConstIntervalsUtils.Intervals(expansionBase, K);
+			this.P = expansionBase.Pk(K);
+			ParyX[] subXs;
+			this.N = new Complex(1d / p.ElementAt(K), 0);
+			rademacherMatrixes = new List<RademaxerMatrix>();
+			for (int i = 0; i < expansionBase.Mk(K); i++) {
+				subXs = ArrayUtils.SubArray(xs, i * P, P);
+				rademacherMatrixes.Add(new RademaxerMatrix(expansionBase, subXs, K, N));
+			}
+			vilenkinXs = ConstIntervalsUtils.Intervals(expansionBase, K - 1);
+			conjugatedWMatrix = MatrixUtils<Complex>.Conjugate(MatrixUtils<Complex>.BuildVilenkin(expansionBase, vilenkinXs));
+			MatrixUtils<Complex>.Multiply(conjugatedWMatrix, new Complex(1d / expansionBase.Mk(K), 0));
+			vilenkinFunctions = new Dictionary<int, VilenkinFunction>();
+			for (int i = 0; i < expansionBase.Mk(K + 1); i++) {
+				vilenkinFunctions.Add(i, new VilenkinFunction(expansionBase, new ParyN(expansionBase, i)));
+			}
+		}*/
+
+		public VilenkinTransform(List<int> p, int K) {
+			this.expansionBase = new ExpansionBase(p);
+			this.K = K;
+			xs = ConstIntervalsUtils.Intervals(expansionBase, K);
+			this.blockSize = expansionBase.Mk(K + 1);
 			this.P = expansionBase.Pk(K);
 			ParyX[] subXs;
 			this.N = new Complex(1d / p.ElementAt(K), 0);

@@ -13,15 +13,17 @@ namespace JPEGAlgorithm {
 
         private ImageBlock cr;
 
-        public const int BLOCK_SIZE = 8;
-        public const int CHUNK_SIZE = 16;
+        public int BLOCK_SIZE;
+        public int CHUNK_SIZE;
         public const int BLOCKS_COUNT = 4;
 
         internal ImageBlock[] Y { get => y; }
         internal ImageBlock Cb { get => cb; }
         internal ImageBlock Cr { get => cr; }
 
-        public Chunk(RGBImage imageChunk) {
+        public Chunk(RGBImage imageChunk, int blockSize) {
+			BLOCK_SIZE = blockSize;
+			CHUNK_SIZE = BLOCK_SIZE * 2;
             if (imageChunk.Width != CHUNK_SIZE && imageChunk.Height != CHUNK_SIZE) 
                 throw new ArgumentException(String.Format("RGBImage have to be %sx%s", CHUNK_SIZE, CHUNK_SIZE));
             //Чанк 16х16 разбивается на матрицу 4х4 с блоками 8х8 и матрица зиг-загом переводится в массив.
@@ -54,10 +56,10 @@ namespace JPEGAlgorithm {
 
 		public Chunk(DCTChunk dCTChunk) {
 			for (int i = 0; i < BLOCKS_COUNT; i++) {
-				y[i] = new ImageBlock(TransformsUtils.Reverse_DCT(dCTChunk.Y[i]));
+				y[i] = new ImageBlock(TransformsUtils.Reverse_DCT_1(dCTChunk.Y[i]));
 			}
-			cb = new ImageBlock(TransformsUtils.Reverse_DCT(dCTChunk.Cb));
-			cr = new ImageBlock(TransformsUtils.Reverse_DCT(dCTChunk.Cr));
+			cb = new ImageBlock(TransformsUtils.Reverse_DCT_1(dCTChunk.Cb));
+			cr = new ImageBlock(TransformsUtils.Reverse_DCT_1(dCTChunk.Cr));
 		}
 
 		public Chunk(VilenkinChunk vilenkinChunk, VilenkinTransform vilenkin) {

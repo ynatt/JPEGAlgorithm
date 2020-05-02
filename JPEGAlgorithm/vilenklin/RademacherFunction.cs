@@ -30,11 +30,15 @@ namespace JPEGAlgorithm.vilenklin {
 				}
 			} else {
 				pows = new Dictionary<int, Complex>();
-				values.Add(Xk, pows);
+				if (!values.ContainsKey(Xk)) {
+					values.Add(Xk, pows);
+				}
 			}
 			double phi = 2 * Math.PI * Xk * pow / Pk;
 			Complex value = new Complex(Math.Cos(phi), Math.Sin(phi));
-			pows.Add(pow, value);
+			if (!pows.ContainsKey(pow)) {
+				pows.Add(pow, value);
+			}
 			return value;
 		}
 

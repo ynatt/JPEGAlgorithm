@@ -254,7 +254,7 @@ namespace JPEGAlgorithm {
 
 		public static Complex ZERO = new Complex(0, 0);
 
-		public static void ZeroByPercent(Complex[,] matrix, int percent) {
+		public static int ZeroByPercent(Complex[,] matrix, int percent) {
 			int w = matrix.GetLength(0);
 			int h = matrix.GetLength(1);
 			List<KeyValuePair<Complex, KeyValuePair<int, int>>> elements = new List<KeyValuePair<Complex, KeyValuePair<int, int>>>(w * h);
@@ -270,9 +270,10 @@ namespace JPEGAlgorithm {
 				temp = elements.ElementAt(i);
 				matrix[temp.Value.Key, temp.Value.Value] = ZERO;
 			}
+			return countToZero;
 		}
 
-		public static void ZeroByPercent(float[,] matrix, int percent) {
+		public static int ZeroByPercent(float[,] matrix, int percent) {
 			int w = matrix.GetLength(0);
 			int h = matrix.GetLength(1);
 			List<KeyValuePair<float, KeyValuePair<int, int>>> elements = new List<KeyValuePair<float, KeyValuePair<int, int>>>(w * h);
@@ -288,6 +289,39 @@ namespace JPEGAlgorithm {
 				temp = elements.ElementAt(i);
 				matrix[temp.Value.Key, temp.Value.Value] = 0f;
 			}
+			return countToZero;
+		}
+
+		public static int CountZeros(float[,] matrix) {
+			int zeros = 0;
+			int w = matrix.GetLength(0);
+			int h = matrix.GetLength(1);
+			for (int i = 0; i < w; i++) {
+				for (int j = 0; j < h; j++) {
+					if (matrix[i, j] == 0f) {
+						zeros++;
+					}
+				}
+			}
+			return zeros;
+		}
+
+		public static int[,] Assemble(ImageBlock[,] imageBlocks) {
+			int w = imageBlocks[0, 0].Width;
+			int h = imageBlocks[0, 0].Height;
+			int[,] res = new int[2 * w, 2 * h];
+			int[,] block;
+			for (int i = 0; i < 2; i++) {
+				for (int j = 0; j < 2; j++) {
+					block = imageBlocks[i, j].Data;
+					for (int k = 0; k < w; k++) {
+						for (int t = 0; t < h; t++) {
+							res[k + w * i, t + h * j] = block[k, t];
+						}
+					}
+				}
+			}
+			return res;
 		}
 	}
 }
