@@ -141,7 +141,7 @@ namespace JPEGAlgorithm {
 			return matrix;
 		}
 
-		public static void ShowMatrix<T>(T[,] matrix) {
+		public static void ShowMatrix(T[,] matrix) {
 			int N = matrix.GetLength(0);
 			int M = matrix.GetLength(1);
 			StringBuilder sb = new StringBuilder();

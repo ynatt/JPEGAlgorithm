@@ -31,6 +31,18 @@ namespace JPEGAlgorithm {
 			return result;
 		}
 
+		public static int[,] RoundComplexMatrixToInt(Complex[,] matrix) {
+			var w = matrix.GetLength(0);
+			var h = matrix.GetLength(1);
+			var result = new int[w, h];
+			for (var i = 0; i < w; i++) {
+				for (var j = 0; j < h; j++) {
+					result[i, j] = (int)Math.Round(matrix[i, j].GetRe());
+				}
+			}
+			return result;
+		}
+
 		public static float[,] ToFloatMatrix(int[,] matrix) {
 			var w = matrix.GetLength(0);
 			var h = matrix.GetLength(1);
@@ -38,6 +50,18 @@ namespace JPEGAlgorithm {
 			for (var i = 0; i < w; i++) {
 				for (var j = 0; j < h; j++) {
 					result[i, j] = (float) matrix[i, j];
+				}
+			}
+			return result;
+		}
+
+		public static Complex[,] ToComplexMatrix(int[,] matrix) {
+			var w = matrix.GetLength(0);
+			var h = matrix.GetLength(1);
+			var result = new Complex[w, h];
+			for (var i = 0; i < w; i++) {
+				for (var j = 0; j < h; j++) {
+					result[i, j] = new Complex(matrix[i, j], 0);
 				}
 			}
 			return result;

@@ -12,6 +12,14 @@ namespace JPEGAlgorithm {
 			}
 		}
 
+		public static Complex[] ToComplexArray(float[] vector) {
+			Complex[] result = new Complex[vector.Length];
+			for (int i = 0; i < vector.Length; i++) {
+				result[i] = new Complex(vector[i], 0);
+			}
+			return result;
+		}
+
 		public static string ArrayToString<T>(List<T> array, string elementName) {
 			StringBuilder builder = new StringBuilder();
 			for (int i = 0; i < array.Count; i++) {

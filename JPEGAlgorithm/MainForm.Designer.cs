@@ -97,6 +97,10 @@ namespace JPEGAlgorithm
 			this.label19 = new System.Windows.Forms.Label();
 			this.label18 = new System.Windows.Forms.Label();
 			this.label17 = new System.Windows.Forms.Label();
+			this.checkBox_EnableAveraging = new System.Windows.Forms.CheckBox();
+			this.checkBox_EnableYCbCr = new System.Windows.Forms.CheckBox();
+			this.comboBox_Transform = new System.Windows.Forms.ComboBox();
+			this.label21 = new System.Windows.Forms.Label();
 			((System.ComponentModel.ISupportInitialize)(this.resultPictureBox)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.sourceImageBox)).BeginInit();
 			this.quantCoeffsGroupBox.SuspendLayout();
@@ -218,12 +222,13 @@ namespace JPEGAlgorithm
 			this.quantCoeffsGroupBox.FlatStyle = System.Windows.Forms.FlatStyle.System;
 			this.quantCoeffsGroupBox.Font = new System.Drawing.Font("Calibri", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
 			this.quantCoeffsGroupBox.ForeColor = System.Drawing.SystemColors.ControlText;
-			this.quantCoeffsGroupBox.Location = new System.Drawing.Point(94, 3);
+			this.quantCoeffsGroupBox.Location = new System.Drawing.Point(1099, 3);
 			this.quantCoeffsGroupBox.Name = "quantCoeffsGroupBox";
 			this.quantCoeffsGroupBox.Size = new System.Drawing.Size(152, 65);
 			this.quantCoeffsGroupBox.TabIndex = 21;
 			this.quantCoeffsGroupBox.TabStop = false;
 			this.quantCoeffsGroupBox.Text = "Quant coeffs";
+			this.quantCoeffsGroupBox.Visible = false;
 			// 
 			// enableQuantOfYCheckBox
 			// 
@@ -310,7 +315,7 @@ namespace JPEGAlgorithm
 			this.infoGroupBox.FlatStyle = System.Windows.Forms.FlatStyle.System;
 			this.infoGroupBox.Font = new System.Drawing.Font("Calibri", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
 			this.infoGroupBox.ForeColor = System.Drawing.SystemColors.ControlText;
-			this.infoGroupBox.Location = new System.Drawing.Point(250, 3);
+			this.infoGroupBox.Location = new System.Drawing.Point(96, 3);
 			this.infoGroupBox.Name = "infoGroupBox";
 			this.infoGroupBox.Size = new System.Drawing.Size(183, 65);
 			this.infoGroupBox.TabIndex = 22;
@@ -576,7 +581,7 @@ namespace JPEGAlgorithm
 			this.errorInfoGroupBox.Controls.Add(this.mseLabel);
 			this.errorInfoGroupBox.Controls.Add(this.label13);
 			this.errorInfoGroupBox.Font = new System.Drawing.Font("Calibri", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-			this.errorInfoGroupBox.Location = new System.Drawing.Point(437, 3);
+			this.errorInfoGroupBox.Location = new System.Drawing.Point(285, 3);
 			this.errorInfoGroupBox.Name = "errorInfoGroupBox";
 			this.errorInfoGroupBox.Size = new System.Drawing.Size(203, 65);
 			this.errorInfoGroupBox.TabIndex = 24;
@@ -655,6 +660,7 @@ namespace JPEGAlgorithm
 			this.button1.TabIndex = 25;
 			this.button1.Text = "Vilenkin Compress";
 			this.button1.UseVisualStyleBackColor = false;
+			this.button1.Visible = false;
 			this.button1.Click += new System.EventHandler(this.button1_Click);
 			// 
 			// label12
@@ -679,12 +685,13 @@ namespace JPEGAlgorithm
 			// 
 			this.button2.BackColor = System.Drawing.SystemColors.GradientInactiveCaption;
 			this.button2.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.button2.Location = new System.Drawing.Point(871, 36);
+			this.button2.Location = new System.Drawing.Point(967, 3);
 			this.button2.Name = "button2";
 			this.button2.Size = new System.Drawing.Size(90, 30);
 			this.button2.TabIndex = 28;
 			this.button2.Text = "Haar Compress";
 			this.button2.UseVisualStyleBackColor = false;
+			this.button2.Visible = false;
 			this.button2.Click += new System.EventHandler(this.button2_Click);
 			// 
 			// N_textBox
@@ -725,7 +732,11 @@ namespace JPEGAlgorithm
 			// 
 			// groupBox2
 			// 
+			this.groupBox2.Controls.Add(this.label21);
+			this.groupBox2.Controls.Add(this.comboBox_Transform);
+			this.groupBox2.Controls.Add(this.checkBox_EnableYCbCr);
 			this.groupBox2.Controls.Add(this.N_textBox);
+			this.groupBox2.Controls.Add(this.checkBox_EnableAveraging);
 			this.groupBox2.Controls.Add(this.label20);
 			this.groupBox2.Controls.Add(this.label15);
 			this.groupBox2.Controls.Add(this.zeroPercentCr_textBox);
@@ -737,9 +748,9 @@ namespace JPEGAlgorithm
 			this.groupBox2.Controls.Add(this.label17);
 			this.groupBox2.Controls.Add(this.label12);
 			this.groupBox2.Controls.Add(this.zeroPercentYBox);
-			this.groupBox2.Location = new System.Drawing.Point(652, 3);
+			this.groupBox2.Location = new System.Drawing.Point(494, 4);
 			this.groupBox2.Name = "groupBox2";
-			this.groupBox2.Size = new System.Drawing.Size(213, 64);
+			this.groupBox2.Size = new System.Drawing.Size(376, 64);
 			this.groupBox2.TabIndex = 32;
 			this.groupBox2.TabStop = false;
 			this.groupBox2.Text = "Settings";
@@ -798,6 +809,55 @@ namespace JPEGAlgorithm
 			this.label17.TabIndex = 33;
 			this.label17.Text = "Y";
 			// 
+			// checkBox_EnableAveraging
+			// 
+			this.checkBox_EnableAveraging.AutoSize = true;
+			this.checkBox_EnableAveraging.Checked = true;
+			this.checkBox_EnableAveraging.CheckState = System.Windows.Forms.CheckState.Checked;
+			this.checkBox_EnableAveraging.Location = new System.Drawing.Point(164, 40);
+			this.checkBox_EnableAveraging.Name = "checkBox_EnableAveraging";
+			this.checkBox_EnableAveraging.Size = new System.Drawing.Size(109, 17);
+			this.checkBox_EnableAveraging.TabIndex = 33;
+			this.checkBox_EnableAveraging.Text = "Enable averaging";
+			this.checkBox_EnableAveraging.UseVisualStyleBackColor = true;
+			this.checkBox_EnableAveraging.CheckedChanged += new System.EventHandler(this.checkBox_EnableAveraging_CheckedChanged);
+			// 
+			// checkBox_EnableYCbCr
+			// 
+			this.checkBox_EnableYCbCr.AutoSize = true;
+			this.checkBox_EnableYCbCr.Checked = true;
+			this.checkBox_EnableYCbCr.CheckState = System.Windows.Forms.CheckState.Checked;
+			this.checkBox_EnableYCbCr.Location = new System.Drawing.Point(278, 40);
+			this.checkBox_EnableYCbCr.Name = "checkBox_EnableYCbCr";
+			this.checkBox_EnableYCbCr.Size = new System.Drawing.Size(92, 17);
+			this.checkBox_EnableYCbCr.TabIndex = 34;
+			this.checkBox_EnableYCbCr.Text = "Enable YCbCr";
+			this.checkBox_EnableYCbCr.UseVisualStyleBackColor = true;
+			this.checkBox_EnableYCbCr.CheckedChanged += new System.EventHandler(this.checkBox_EnableYCbCr_CheckedChanged);
+			// 
+			// comboBox_Transform
+			// 
+			this.comboBox_Transform.DisplayMember = "DCT";
+			this.comboBox_Transform.FormattingEnabled = true;
+			this.comboBox_Transform.Items.AddRange(new object[] {
+            "DCT",
+            "Haar",
+            "Vilenkin"});
+			this.comboBox_Transform.Location = new System.Drawing.Point(278, 12);
+			this.comboBox_Transform.Name = "comboBox_Transform";
+			this.comboBox_Transform.Size = new System.Drawing.Size(92, 21);
+			this.comboBox_Transform.TabIndex = 39;
+			this.comboBox_Transform.Text = "DCT";
+			// 
+			// label21
+			// 
+			this.label21.AutoSize = true;
+			this.label21.Location = new System.Drawing.Point(218, 15);
+			this.label21.Name = "label21";
+			this.label21.Size = new System.Drawing.Size(54, 13);
+			this.label21.TabIndex = 40;
+			this.label21.Text = "Transform";
+			// 
 			// MainForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -818,7 +878,7 @@ namespace JPEGAlgorithm
 			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
 			this.Name = "MainForm";
 			this.RightToLeft = System.Windows.Forms.RightToLeft.No;
-			this.Text = "JPEGAlgorithm";
+			this.Text = "CompressAlgorithm";
 			this.Load += new System.EventHandler(this.MainForm_Load);
 			((System.ComponentModel.ISupportInitialize)(this.resultPictureBox)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.sourceImageBox)).EndInit();
@@ -907,6 +967,10 @@ namespace JPEGAlgorithm
 		private System.Windows.Forms.Label label19;
 		private System.Windows.Forms.Label label18;
 		private System.Windows.Forms.Label label17;
+		private System.Windows.Forms.CheckBox checkBox_EnableAveraging;
+		private System.Windows.Forms.CheckBox checkBox_EnableYCbCr;
+		private System.Windows.Forms.ComboBox comboBox_Transform;
+		private System.Windows.Forms.Label label21;
 	}
 }
 

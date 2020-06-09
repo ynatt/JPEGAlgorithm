@@ -8,32 +8,41 @@ namespace JPEGAlgorithm {
 	class DCTChunk {
 		private float[][,] y;
 
-		private float[,] cb;
+		private float[][,] cb;
 
-		private float[,] cr;
+		private float[][,] cr;
 
 		private int zeroCoeffs;
 
 		public DCTChunk(Chunk chunk) {
 			y = new float[Chunk.BLOCKS_COUNT][,];
+			cb = new float[Chunk.BLOCKS_COUNT][,];
+			cr = new float[Chunk.BLOCKS_COUNT][,];
 			for (int i = 0; i < Chunk.BLOCKS_COUNT; i++) {
 				Y[i] = TransformsUtils.DCT_1(chunk.Y[i]);
 			}
-			cb = TransformsUtils.DCT_1(chunk.Cb);
-			cr = TransformsUtils.DCT_1(chunk.Cr);
+			if (MainForm.isAveragingEnabled) {
+				cb[0] = TransformsUtils.DCT_1(chunk.Cb[0]);
+				cr[0] = TransformsUtils.DCT_1(chunk.Cr[0]);
+			} else {
+				for (int i = 0; i < Chunk.BLOCKS_COUNT; i++) {
+					cb[i] = TransformsUtils.DCT_1(chunk.Cb[i]);
+					cr[i] = TransformsUtils.DCT_1(chunk.Cr[i]);
+				}
+			}
 		}
 
 		public float[][,] Y { get => y; }
-		public float[,] Cb { get => cb; }
-		public float[,] Cr { get => cr; }
+		public float[][,] Cb { get => cb; }
+		public float[][,] Cr { get => cr; }
 
 		public override string ToString() {
 			StringBuilder sb = new StringBuilder();
 			for (int i = 0; i < Chunk.BLOCKS_COUNT; i++) {
 				sb.Append("DCT coeffs of Y" + i).AppendLine().Append(MatrixUtils<float>.ToString(y[i])).AppendLine();
 			}
-			sb.Append("DCT coeffs of Cb").AppendLine().Append(MatrixUtils<float>.ToString(cb)).AppendLine();
-			sb.Append("DCT coeffs of Cr").AppendLine().Append(MatrixUtils<float>.ToString(cr)).AppendLine();
+			sb.Append("DCT coeffs of Cb").AppendLine().Append(MatrixUtils<float>.ToString(cb[0])).AppendLine();
+			sb.Append("DCT coeffs of Cr").AppendLine().Append(MatrixUtils<float>.ToString(cr[0])).AppendLine();
 			return sb.ToString();
 		}
 
@@ -49,11 +58,19 @@ namespace JPEGAlgorithm {
 			for (int i = 0; i < Chunk.BLOCKS_COUNT; i++) {
 				zeroCoeffs += MatrixUtils<Complex>.ZeroByPercent(y[i], percentY);
 			}
-			zeroCoeffs += MatrixUtils<Complex>.ZeroByPercent(cb, percentCb);
-			zeroCoeffs += MatrixUtils<Complex>.ZeroByPercent(cr, percentCr);
+			if (MainForm.isAveragingEnabled) {
+				zeroCoeffs += Chunk.BLOCKS_COUNT * MatrixUtils<Complex>.ZeroByPercent(cb[0], percentCb);
+				zeroCoeffs += Chunk.BLOCKS_COUNT * MatrixUtils<Complex>.ZeroByPercent(cr[0], percentCr);
+			} else {
+				for (int i = 0; i < Chunk.BLOCKS_COUNT; i++) {
+					zeroCoeffs += MatrixUtils<Complex>.ZeroByPercent(cb[i], percentCb);
+					zeroCoeffs += MatrixUtils<Complex>.ZeroByPercent(cr[i], percentCr);
+				}
+
+			}
 		}
 
-		public void QuantizeCbCr(float[,] quantizeMatrix) {
+		/*public void QuantizeCbCr(float[,] quantizeMatrix) {
 			MathUtils.Quantize(cb, quantizeMatrix);
 			MathUtils.RoundMatrix(cb);
 			zeroCoeffs += MatrixUtils<int>.CountZeros(cb);
@@ -74,10 +91,10 @@ namespace JPEGAlgorithm {
 			MathUtils.RoundMatrix(cb);
 			MathUtils.Dequantize(cr, quantizeMatrix);
 			MathUtils.RoundMatrix(cr);
-		}
+		}*/
 
 
-		public int[] getDCCoeffs() {
+		/*public int[] getDCCoeffs() {
 			int[] coeffs = new int[6];
 			for (int i = 0; i < Chunk.BLOCKS_COUNT; i++) {
 				coeffs[i] = (int)y[i][0, 0];
@@ -85,9 +102,9 @@ namespace JPEGAlgorithm {
 			coeffs[4] = (int)cb[0, 0];
 			coeffs[5] = (int)cr[0, 0];
 			return coeffs;
-		}
+		}*/
 
-		public int[] getACCoeffs() {
+		/*public int[] getACCoeffs() {
 			var coeffs = new int[6 * y[0].Length * y[0].Length];
 			int t = 0;
 			for (int i = 0; i < Chunk.BLOCKS_COUNT; i++) {
@@ -117,10 +134,10 @@ namespace JPEGAlgorithm {
 				}
 			}
 			return coeffs;
-		}
+		}*/
 
 		public int CoeffsCount() {
-			return y.Length * (int)Math.Pow(y[0].GetLength(0), 2) + (int)Math.Pow(cb.GetLength(0), 2) + (int)Math.Pow(cr.GetLength(0), 2);
+			return Chunk.BLOCKS_COUNT * ((int)Math.Pow(y[0].GetLength(0), 2) + (int)Math.Pow(cb[0].GetLength(0), 2) + (int)Math.Pow(cr[0].GetLength(0), 2));
 		}
 
 		public int ZeroCoeffsCount() {

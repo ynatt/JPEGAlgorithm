@@ -58,9 +58,17 @@ namespace JPEGAlgorithm
 			chunk.Unshift();
 			var imageBlockMatrix = MatrixUtils<ImageBlock>.ToMatrixByZigZag(chunk.Y, 2);
 			var yChunkImageBlock = new ImageBlock(imageBlockMatrix);
-			var cbChunkImageBlock = ImageBlock.FromAvaraged(chunk.Cb);
-			var crChunkImageBlock = ImageBlock.FromAvaraged(chunk.Cr);
-			return new YCbCrImage(ImageUtils.Merge(yChunkImageBlock, cbChunkImageBlock, crChunkImageBlock));
+			if (MainForm.isAveragingEnabled) {
+				var cbChunkImageBlock = ImageBlock.FromAvaraged(chunk.Cb[0]);
+				var crChunkImageBlock = ImageBlock.FromAvaraged(chunk.Cr[0]);
+				return new YCbCrImage(ImageUtils.Merge(yChunkImageBlock, cbChunkImageBlock, crChunkImageBlock));
+			} else {
+				imageBlockMatrix = MatrixUtils<ImageBlock>.ToMatrixByZigZag(chunk.Cb, 2);
+				var cbChunkImageBlock = new ImageBlock(imageBlockMatrix);
+				imageBlockMatrix = MatrixUtils<ImageBlock>.ToMatrixByZigZag(chunk.Cr, 2);
+				var crChunkImageBlock = new ImageBlock(imageBlockMatrix);
+				return new YCbCrImage(ImageUtils.Merge(yChunkImageBlock, cbChunkImageBlock, crChunkImageBlock));
+			}
 		}
 
 		public YCbCrImage SubImage(int dimension, int x, int y) {
@@ -77,7 +85,11 @@ namespace JPEGAlgorithm
 			var yCbCrPixels = new RGBPixel[width, height];
 			for (var i = 0; i < width; i++) {
 				for (var j = 0; j < height; j++) {
-					yCbCrPixels[i, j] = pixels[i, j].ToRGB();
+					if (MainForm.isYCbCrEnabled) {
+						yCbCrPixels[i, j] = pixels[i, j].ToRGB();
+					} else {
+						yCbCrPixels[i, j] = pixels[i, j].ToRGBWithoutTransform();
+					}
 				}
 			}
 			return new RGBImage(yCbCrPixels);

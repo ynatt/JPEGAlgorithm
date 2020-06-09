@@ -9,17 +9,17 @@ namespace JPEGAlgorithm {
     class Chunk {
         private ImageBlock[] y = new ImageBlock[4];
 
-        private ImageBlock cb;
+        private ImageBlock[] cb = new ImageBlock[4];
 
-        private ImageBlock cr;
+        private ImageBlock[] cr = new ImageBlock[4];
 
         public int BLOCK_SIZE;
         public int CHUNK_SIZE;
         public const int BLOCKS_COUNT = 4;
 
         internal ImageBlock[] Y { get => y; }
-        internal ImageBlock Cb { get => cb; }
-        internal ImageBlock Cr { get => cr; }
+        internal ImageBlock[] Cb { get => cb; }
+        internal ImageBlock[] Cr { get => cr; }
 
         public Chunk(RGBImage imageChunk, int blockSize) {
 			BLOCK_SIZE = blockSize;
@@ -31,7 +31,11 @@ namespace JPEGAlgorithm {
             var yCbCrBlocks = new YCbCrImage[4];
             //RGB блоки трансформируются в YCbCr блоки
             for (var i = 0; i < BLOCKS_COUNT; i++) {
-                yCbCrBlocks[i] = blocks[i].ToYCbCrImage();
+				if (MainForm.isYCbCrEnabled) {
+					yCbCrBlocks[i] = blocks[i].ToYCbCrImage();
+				} else {
+					yCbCrBlocks[i] = blocks[i].ToYCbCrimageWithoutTransform();
+				}
             }
             var cbBlocks = new ImageBlock[BLOCKS_COUNT];
             var crBlocks = new ImageBlock[BLOCKS_COUNT];
@@ -42,15 +46,26 @@ namespace JPEGAlgorithm {
                 cbBlocks[i] = yCbCrBlocks[i].GetImageBlock(YCbCrImage.Channel.Cb);
                 crBlocks[i] = yCbCrBlocks[i].GetImageBlock(YCbCrImage.Channel.Cr);
             }
-            //Cb и Cr блоки из массива переводим в матрицу блоков
-            var cbMatrix = MatrixUtils<ImageBlock>.ToMatrixByZigZag(cbBlocks, 2);
-            var crMatrix = MatrixUtils<ImageBlock>.ToMatrixByZigZag(crBlocks, 2);
-            //Усредняем Cb и Cr из 4-ех блоков 8х8 в 1 блок 8х8 и смещаем на 128
-            Averager averager = new Averager();
-            cb = averager.Average(cbMatrix);
-            ImageUtils.Shift(Cb);
-            cr = averager.Average(crMatrix);
-            ImageUtils.Shift(Cr);
+			if (MainForm.isAveragingEnabled) {
+				//Cb и Cr блоки из массива переводим в матрицу блоков
+				var cbMatrix = MatrixUtils<ImageBlock>.ToMatrixByZigZag(cbBlocks, 2);
+				var crMatrix = MatrixUtils<ImageBlock>.ToMatrixByZigZag(crBlocks, 2);
+				//Усредняем Cb и Cr из 4-ех блоков 8х8 в 1 блок 8х8 и смещаем на 128
+				Averager averager = new Averager();
+				cb[0] = averager.Average(cbMatrix);
+				ImageUtils.Shift(Cb[0]);
+				cr[0] = averager.Average(crMatrix);
+				ImageUtils.Shift(Cr[0]);
+			} else {
+				cb = cbBlocks;
+				for (int i = 0; i < BLOCKS_COUNT; i++) {
+					ImageUtils.Shift(Cb[i]);
+				}
+				cr = crBlocks;
+				for (int i = 0; i < BLOCKS_COUNT; i++) {
+					ImageUtils.Shift(Cr[i]);
+				}
+			}
         }
 
 
@@ -58,24 +73,45 @@ namespace JPEGAlgorithm {
 			for (int i = 0; i < BLOCKS_COUNT; i++) {
 				y[i] = new ImageBlock(TransformsUtils.Reverse_DCT_1(dCTChunk.Y[i]));
 			}
-			cb = new ImageBlock(TransformsUtils.Reverse_DCT_1(dCTChunk.Cb));
-			cr = new ImageBlock(TransformsUtils.Reverse_DCT_1(dCTChunk.Cr));
+			if (MainForm.isAveragingEnabled) {
+				cb[0] = new ImageBlock(TransformsUtils.Reverse_DCT_1(dCTChunk.Cb[0]));
+				cr[0] = new ImageBlock(TransformsUtils.Reverse_DCT_1(dCTChunk.Cr[0]));
+			} else {
+				for (int i = 0; i < BLOCKS_COUNT; i++) {
+					cb[i] = new ImageBlock(TransformsUtils.Reverse_DCT_1(dCTChunk.Cb[i]));
+					cr[i] = new ImageBlock(TransformsUtils.Reverse_DCT_1(dCTChunk.Cr[i]));
+				}
+			}
 		}
 
 		public Chunk(VilenkinChunk vilenkinChunk, VilenkinTransform vilenkin) {
 			for (int i = 0; i < BLOCKS_COUNT; i++) {
 				y[i] = new ImageBlock(vilenkin.ReverseTransform(vilenkinChunk.Y[i]));
 			}
-			cb = new ImageBlock(vilenkin.ReverseTransform(vilenkinChunk.Cb));
-			cr = new ImageBlock(vilenkin.ReverseTransform(vilenkinChunk.Cr));
+			if (MainForm.isAveragingEnabled) {
+				cb[0] = new ImageBlock(vilenkin.ReverseTransform(vilenkinChunk.Cb[0]));
+				cr[0] = new ImageBlock(vilenkin.ReverseTransform(vilenkinChunk.Cr[0]));
+			} else {
+				for (int i = 0; i < BLOCKS_COUNT; i++) {
+					cb[i] = new ImageBlock(vilenkin.ReverseTransform(vilenkinChunk.Cb[i]));
+					cr[i] = new ImageBlock(vilenkin.ReverseTransform(vilenkinChunk.Cr[i]));
+				}
+			}
 		}
 
-		public Chunk(HaarChunk haarChunk) {
+		public Chunk(HaarChunk haarChunk, int p) {
 			for (int i = 0; i < BLOCKS_COUNT; i++) {
-				y[i] = new ImageBlock(TransformsUtils.HaarReverseTransform(haarChunk.Y[i]));
+				y[i] = new ImageBlock(TransformsUtils.HaarReverseTransform(haarChunk.Y[i], p));
 			}
-			cb = new ImageBlock(TransformsUtils.HaarReverseTransform(haarChunk.Cb));
-			cr = new ImageBlock(TransformsUtils.HaarReverseTransform(haarChunk.Cr));
+			if (MainForm.isAveragingEnabled) {
+				cb[0] = new ImageBlock(TransformsUtils.HaarReverseTransform(haarChunk.Cb[0], p));
+				cr[0] = new ImageBlock(TransformsUtils.HaarReverseTransform(haarChunk.Cr[0], p));
+			} else {
+				for (int i = 0; i < BLOCKS_COUNT; i++) {
+					cb[i] = new ImageBlock(TransformsUtils.HaarReverseTransform(haarChunk.Cb[i], p));
+					cr[i] = new ImageBlock(TransformsUtils.HaarReverseTransform(haarChunk.Cr[i], p));
+				}
+			}
 		}
 
 		public void Unshift() {
@@ -83,8 +119,15 @@ namespace JPEGAlgorithm {
 			ImageUtils.Unshift(y[1]);
 			ImageUtils.Unshift(y[2]);
 			ImageUtils.Unshift(y[3]);
-			ImageUtils.Unshift(cb);
-			ImageUtils.Unshift(cr);
+			if (MainForm.isAveragingEnabled) {
+				ImageUtils.Unshift(cb[0]);
+				ImageUtils.Unshift(cr[0]);
+			} else {
+				for (int i = 0; i < BLOCKS_COUNT; i++) {
+					ImageUtils.Unshift(cb[i]);
+					ImageUtils.Unshift(cr[i]);
+				}
+			}
 		}
 
         public override string ToString() {
@@ -97,10 +140,10 @@ namespace JPEGAlgorithm {
                 			continue;
               			}
               			if (k == 4) {
-                			sb.Append(cb.Data[i, j]).Append(" ");
+                			sb.Append(cb[0].Data[i, j]).Append(" ");
               			}
               			if (k == 5) {
-                			sb.Append(cb.Data[i, j]).Append(" ");
+                			sb.Append(cb[0].Data[i, j]).Append(" ");
               			}
             		}
             	sb.Append("    ");

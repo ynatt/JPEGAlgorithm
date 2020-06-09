@@ -59,6 +59,16 @@ namespace JPEGAlgorithm {
 			return new Complex(a.Re + b.Re, a.Im + b.Im);
 		}
 
+		public static Complex operator *(Complex a, double b) {
+			if (b == 1d) {
+				return a;
+			}
+			if (b == 0) {
+				return MatrixUtils<Complex>.ZERO;
+			}
+			return new Complex(a.Re * b, a.Im * b);
+		}
+
 		public Complex Conjugate() {
 			return new Complex(this.Re, -this.Im);
 		}

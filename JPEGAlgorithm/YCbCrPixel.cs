@@ -24,7 +24,11 @@ namespace JPEGAlgorithm
 			return new RGBPixel((int)r, (int)g, (int)b);
 		}
 
-        public override string ToString() {
+		public RGBPixel ToRGBWithoutTransform() {
+			return new RGBPixel((int)y, (int)cb, (int)cr);
+		}
+
+		public override string ToString() {
             return "[" + y + ", " + cb + ", " + cr + "]";
         }
     }

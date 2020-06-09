@@ -124,6 +124,16 @@ namespace JPEGAlgorithm
             return new YCbCrImage(yCbCrPixels);
         }
 
+		public YCbCrImage ToYCbCrimageWithoutTransform() {
+			var yCbCrPixels = new YCbCrPixel[width, height];
+			for (var i = 0; i < width; i++) {
+				for (var j = 0; j < height; j++) {
+					yCbCrPixels[i, j] = pixels[i, j].ToYCCWithoutTransform();
+				}
+			}
+			return new YCbCrImage(yCbCrPixels);
+		}
+
         public RGBImage[] ToBlockArray(int blockSize, out int widthBlocks, out int heightBlocks) {
             if (Height % blockSize != 0 && Width % blockSize != 0) {
                 throw new ArgumentException("Image don't fit to chunk with size = " + blockSize);

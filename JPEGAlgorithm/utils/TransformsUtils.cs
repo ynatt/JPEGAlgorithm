@@ -10,6 +10,8 @@ namespace JPEGAlgorithm {
 
 		public static Dictionary<int, float[,]> cosMatrixes = new Dictionary<int, float[,]>();
 
+		public static Dictionary<int, Complex[,]> haarMatrixes = new Dictionary<int, Complex[,]>();
+
         public static float[,] DCT_1(ImageBlock imageBlock) {
             var block = imageBlock.Data;
             var n = imageBlock.Width;
@@ -208,6 +210,69 @@ namespace JPEGAlgorithm {
 			return result;
 		}
 
+		public static void BuildHaarMatrix(int p) {
+			lock (syncLock) {
+				var result = new Complex[p, p];
+				var coeff = new Complex(1d / Math.Sqrt(p), 0);
+				double phi;
+				for (int i = 0; i < p; i++) {
+					for (int j = 0; j < p; j++) {
+						phi = (2d / p) * Math.PI * i * j;
+						result[i, j] = new Complex(Math.Cos(phi), Math.Sin(phi)) * coeff;
+					}
+				}
+				haarMatrixes.Add(p, result);
+			}
+		}
+
+		public static void HaarTransform(Complex[] vector, int p, int len) {
+			if (len == 1) {
+				return;
+			}
+			var N = len / p;
+			Complex[] result = new Complex[len];
+			var k = 0;
+			Complex value;
+			for (int s = 0; s < p; s++) {
+				for (int i = 0; i < N; i++) {
+					value = MatrixUtils<Complex>.ZERO;
+					for (int j = 0; j < p; j++) {
+						value += haarMatrixes[p][s, j].Conjugate() * vector[p * i + j];
+					}
+					result[k++] = value;
+				}
+			}
+			for (int i = 0; i < len; i++) {
+				vector[i] = result[i];
+			}
+		}
+
+		public static void ReverseHaarTransform(Complex[] vector, int p, int len) {
+			if (len > vector.Length) {
+				return;
+			}
+			Complex[] result = new Complex[len];
+			int N = len / p;
+			int g = 0;
+			int s = 0;
+			Complex value;
+			for (int k = 0; k < len; k++) {
+				if (g == p) {
+					g = 0;
+					s++;
+				}
+				value = MatrixUtils<Complex>.ZERO;
+				for (int t = 0; t < p; t++) {
+					value += haarMatrixes[p][g, t] * vector[N * t + s];
+				}
+				result[k] = value;
+				g++;
+			}
+			for (int i = 0; i < len; i++) {
+				vector[i] = result[i];
+			}
+		}
+
 		public static void HaarTransform(float[] vector, int size) {
 			float[] temp = new float[size];
 			int n = size / 2;
@@ -224,56 +289,56 @@ namespace JPEGAlgorithm {
 			}
 		}
 
-		public static void HaarTransform(float[,] matrix, int w, int h) {
-			var vector = new float[w];
+		public static void HaarTransform(Complex[,] matrix, int p, int w, int h) {
+			var vector = new Complex[w];
 			for (var i = 0; i < h; i++) {
 				for (var j = 0; j < w; j++) {
 					vector[j] = matrix[i, j];
 				}
-				HaarTransform(vector, w);
+				HaarTransform(vector, p, w);
 				for (var j = 0; j < w; j++) {
 					matrix[i, j] = vector[j];
 				}
 			}
-			vector = new float[h];
+			vector = new Complex[h];
 			for (var i = 0; i < w; i++) {
 				for (var j = 0; j < h; j++) {
 					vector[j] = matrix[j, i];
 				}
-				HaarTransform(vector, h);
+				HaarTransform(vector, p, h);
 				for (var j = 0; j < h; j++) {
 					matrix[j, i] = vector[j];
 				}
 			}
 		}
 
-		public static float[,] HaarTransform(ImageBlock imageBlock) {
-			float[,] matrix = MathUtils.ToFloatMatrix(imageBlock.Data);
+		public static Complex[,] HaarTransform(ImageBlock imageBlock, int p) {
+			Complex[,] matrix = MathUtils.ToComplexMatrix(imageBlock.Data);
 			int w = matrix.GetLength(0);
 			int h = matrix.GetLength(1);
-			while (w >= 2 && h >= 2) {
-				HaarTransform(matrix, w, h);
-				w /= 2;
-				h /= 2;
+			while (w >= p && h >= p) {
+				HaarTransform(matrix, p, w, h);
+				w /= p;
+				h /= p;
 			}
 			return matrix;
 		}
 
-		public static int[,] HaarReverseTransform(float[,] matrix) {
+		public static int[,] HaarReverseTransform(Complex[,] matrix, int p) {
 			int w = matrix.GetLength(0);
 			int h = matrix.GetLength(1);
-			while (w >= 2 && h >= 2) {
-				w /= 2;
-				h /= 2;
+			while (w >= p && h >= p) {
+				w /= p;
+				h /= p;
 			}
-			w *= 2;
-			h *= 2;
+			w *= p;
+			h *= p;
 			while (w <= matrix.GetLength(0) && h <= matrix.GetLength(1)) {
-				HaarReverseTransform(matrix, w, h);
-				w *= 2;
-				h *= 2;
+				HaarReverseTransform(matrix, p, w, h);
+				w *= p;
+				h *= p;
 			}
-			return MathUtils.RoundFloatMatrix(matrix);
+			return MathUtils.RoundComplexMatrixToInt(matrix);
 		}
 
 		public static void HaarReverseTransform(float[] vector, int size) {
@@ -292,23 +357,23 @@ namespace JPEGAlgorithm {
 			}
 		}
 
-		public static void HaarReverseTransform(float[,] matrix, int w, int h) {
-			var vector = new float[h];
+		public static void HaarReverseTransform(Complex[,] matrix, int p, int w, int h) {
+			var vector = new Complex[h];
 			for (var i = 0; i < w; i++) {
 				for (var j = 0; j < h; j++) {
 					vector[j] = matrix[j, i];
 				}
-				HaarReverseTransform(vector, h);
+				ReverseHaarTransform(vector, p, h);
 				for (var j = 0; j < h; j++) {
 					matrix[j, i] = vector[j];
 				}
 			}
-			vector = new float[w];
+			vector = new Complex[w];
 			for (var i = 0; i < h; i++) {
 				for (var j = 0; j < w; j++) {
 					vector[j] = matrix[i, j];
 				}
-				HaarReverseTransform(vector, w);
+				ReverseHaarTransform(vector, p, w);
 				for (var j = 0; j < w; j++) {
 					matrix[i, j] = vector[j];
 				}

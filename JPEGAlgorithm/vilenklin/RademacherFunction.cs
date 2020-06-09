@@ -34,7 +34,8 @@ namespace JPEGAlgorithm.vilenklin {
 					values.Add(Xk, pows);
 				}
 			}
-			double phi = 2 * Math.PI * Xk * pow / Pk;
+			double PK = 1d / Pk;
+			double phi = 2d * Math.PI * Xk * pow * PK;
 			Complex value = new Complex(Math.Cos(phi), Math.Sin(phi));
 			if (!pows.ContainsKey(pow)) {
 				pows.Add(pow, value);

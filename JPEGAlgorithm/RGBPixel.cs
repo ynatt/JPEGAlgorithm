@@ -24,7 +24,11 @@ namespace JPEGAlgorithm
             return new YCbCrPixel(y, cb, cr);
         }
 
-        public override string ToString()
+		public YCbCrPixel ToYCCWithoutTransform() {
+			return new YCbCrPixel(r, g, b);
+		}
+
+		public override string ToString()
         {
             return "[" + r + ", " + g + ", " + b + "]";
         }
